@@ -1,0 +1,1 @@
+window.style = new StyleController();
