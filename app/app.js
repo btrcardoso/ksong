@@ -22,6 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // bootstrap directories
 app.use('/bootstrap',express.static(path.join(__dirname, 'node_modules/bootstrap')));
+app.use('/bootstrap-icons',express.static(path.join(__dirname, 'node_modules/bootstrap-icons')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

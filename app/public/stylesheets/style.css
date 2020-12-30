@@ -1,8 +1,96 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+.list-group.files{
+  width: 95%;
+  margin-left:auto;
+  margin-right: auto;
 }
 
-a {
-  color: #00B7FF;
+.body-light{
+  background-color: rgb(230, 230, 230);
 }
+.nav-light{
+  background-color: #6d6d6d;
+}
+.btn-switch-light{
+  background-color: #ececec;
+}
+.item-light{
+  background-color: #f7f7f7;
+  color: black;
+}
+.item-light:focus,.item-light:hover{
+  background-color: #eeeeee;
+  color: black;
+}
+.item-light.selected{
+  background-color: rgb(179 179 179);
+  color: black;
+}
+
+.body-dark{
+  background-color: rgb(63, 62, 62);
+}
+.nav-dark{
+  background-color: rgb(27 26 26);
+}
+.btn-switch-dark{
+  background-color: #333333;
+}
+.item-dark{
+  background-color: #4e4e4e;
+  color: white;
+}
+.item-dark:focus,.item-dark:hover{
+  background-color: #585858;
+  color: white;
+}
+.item-dark.selected{
+  background-color: #272727;
+  color: white;
+}
+
+
+/*
+body{
+  background-color: rgb(230, 230, 230);
+}
+.navbar{
+  background-color: #6d6d6d;
+}
+.light-switch{
+  background-color: #ececec;
+}
+.list-group-item{
+  background-color: #f7f7f7;
+  color: black;
+}
+.list-group-item:focus,.list-group-item:hover{
+  background-color: #eeeeee;
+  color: black;
+}
+.list-group-item.selected{
+  background-color: rgb(179 179 179);
+  color: black;
+}
+
+.body-dark{
+  background-color: rgb(63, 62, 62);
+}
+.nav-dark{
+  background-color: rgb(27 26 26);
+}
+.btn-switch-dark{
+  background-color: #333333;
+}
+.item-dark{
+  background-color: #4e4e4e;
+  color: white;
+}
+.item-dark:focus,.item-dark:hover{
+  background-color: #585858;
+  color: white;
+}
+.item-dark.selected{
+  background-color: #272727;
+  color: white;
+}
+*/
