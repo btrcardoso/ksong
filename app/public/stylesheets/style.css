@@ -1,6 +1,6 @@
 .list-group.files{
-  width: 95%;
-  margin-left:auto;
+  width:95%;
+  margin-left: auto;
   margin-right: auto;
 }
 
@@ -25,6 +25,9 @@
   background-color: rgb(179 179 179);
   color: black;
 }
+.btn-light{
+  background-color: #d4d4d4;
+}
 
 .body-dark{
   background-color: rgb(63, 62, 62);
@@ -46,6 +49,9 @@
 .item-dark.selected{
   background-color: #272727;
   color: white;
+}
+.btn-dark{
+  background-color: #37393c;
 }
 
 

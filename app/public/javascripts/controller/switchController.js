@@ -13,11 +13,6 @@ class SwitchController {
         document.querySelector(".light-switch").addEventListener('click', ()=>{
             this.changeTheme();
         });
-        this.listFilesEl.querySelectorAll("a.list-group-item").forEach(li=>{
-            li.addEventListener('click',()=>{
-               li.classList.toggle('selected');
-           });
-        });
     }
 
     changeTheme(){
@@ -25,12 +20,16 @@ class SwitchController {
         let navbarClass = ["navbar-light","nav-light"];
         let liClass = "item-light";
         let btnLightSwitchClass=["btn-light","btn-switch-light"];
+        let btnClass = "btn-light";        
+        //let btnOutlineClass = "btn-outline-dark";
 
         if(!this.lightOn){
             bodyClass = "body-dark";
             navbarClass = ["navbar-dark","nav-dark"];
             liClass = "item-dark";
             btnLightSwitchClass=["btn-dark","btn-switch-dark"];
+            btnClass = "btn-dark";
+            //btnOutlineClass = "btn-outline-light";
         }
         
         document.body.classList.remove("body-light","body-dark");
@@ -46,6 +45,11 @@ class SwitchController {
 
         this.btnLightSwitchEl.classList.remove("btn-light","btn-switch-light","btn-dark","btn-switch-dark");
         this.btnLightSwitchEl.classList.add(btnLightSwitchClass[0],btnLightSwitchClass[1]);
+
+        document.querySelectorAll(".btn").forEach(btn=>{
+            btn.classList.remove("btn-light","btn-dark");
+            btn.classList.add(btnClass);
+        })
         
         this.lightOn = !this.lightOn;
     }

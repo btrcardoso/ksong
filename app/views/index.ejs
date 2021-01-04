@@ -9,89 +9,107 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">ksongs</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-              </li>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Dropdown
-                </a>
-                <!--
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <li><a class="dropdown-item" href="#">Action</a></li>
-                  <li><a class="dropdown-item" href="#">Another action</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="#">Something else here</a></li>
-                </ul>
-                -->
-              </li>
-              <li class="nav-item">
-                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-              </li>
-            </ul>
-            <div>
-                <button type="button" class="light-switch btn btn-secondary" style="border-radius: 100%;">
-                    <svg class="bi" width="23" height="23" fill="currentColor">
-                      <use xlink:href="bootstrap-icons/bootstrap-icons.svg#brightness-high-fill"/>
-                    </svg>
-                    <span class="visually-hidden">Button</span>
-                </button>
-            </div>
-            <form class="d-flex">
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-              <button class="btn btn-outline-success" type="submit">Search</button>
-            </form>
+    <nav class="navbar navbar-fixed navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">ksongs</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <!--
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Dropdown
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+            </li>
+          -->
+          </ul>
+          <div>
+              <button type="button" class="light-switch btn btn-secondary" style="border-radius: 100%;">
+                  <svg class="bi" width="23" height="23" fill="currentColor">
+                    <use xlink:href="bootstrap-icons/bootstrap-icons.svg#brightness-high-fill"/>
+                  </svg>
+                  <span class="visually-hidden">Button</span>
+              </button>
           </div>
+          <form class="d-flex">
+            <!--
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+            -->
+          </form>
         </div>
-      </nav>
+      </div>
+    </nav>
+      
+    <div class="d-flex align-items-start">
+      <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        <button type="button" class="btn" id="btn-send-files">
+          <svg class="bi" width="17" height="17" fill="currentColor">
+            <use xlink:href="bootstrap-icons/bootstrap-icons.svg#upload"/>
+          </svg> Send Files
+        </button>
+        <input style="display:none;" type="file" id="input-files" multiple>
+        <button type="button" class="btn" id="btn-new-folder"> 
+          <svg class="bi" width="17" height="17" fill="currentColor">
+            <use xlink:href="bootstrap-icons/bootstrap-icons.svg#folder"/>
+          </svg> New Folder
+        </button>
+        <button type="button" class="btn" id="btn-delete"> 
+          <svg class="bi" width="17" height="17" fill="currentColor">
+            <use xlink:href="bootstrap-icons/bootstrap-icons.svg#trash"/>
+          </svg> Delete
+        </button>  
+      </div>
+      <div style="width:100%;">
+        <div>
+          <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Library</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="list-group files">
+          
+        </div>
+      </div>
+    </div>
 
-      <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Home</a></li>
-          <li class="breadcrumb-item active" aria-current="page">Library</li>
-        </ol>
-      </nav>
-<!--
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item" aria-current="true">Cras justo</li>
-        <li class="list-group-item" aria-disabled="true">Cras justo odio</li>
-        <li class="list-group-item">Dapibus ac facilisis in</li>
-      </ul>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+        https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    
+    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-database.js"></script>
+    
+    <script src="javascripts/controller/listFilesController.js"></script>
+    <script src="javascripts/listFiles.js"></script>
+
+    <!--
+    <script src="javascripts/controller/switchController.js"></script>
+    <script src="javascripts/switch.js"></script>
     -->
 
-      <div class="list-group files">
-        <a href="#" class="list-group-item list-group-item-action">
-          <svg class="bi" width="23" height="23" fill="currentColor">
-            <use xlink:href="bootstrap-icons/bootstrap-icons.svg#music-note"/>
-          </svg>
-          Song
-        </a>
-        <!--
-        <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
-          Cras justo odio
-        </a>
-        <a href="#" class="list-group-item list-group-item-action">Morbi leo risus</a>
-        <a href="#" class="list-group-item list-group-item-action">Porta ac consectetur ac</a>
-        <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">Vestibulum at eros</a>
-      -->
-      </div>
-
-      <script src="javascripts/controller/switchController.js"></script>
-      <script src="javascripts/switch.js"></script>
-
-      <!-- Optional JavaScript; choose one of the two! -->
-
+    <!-- Optional JavaScript; choose one of the two! -->
     <!-- Option 1: Bootstrap Bundle with Popper -->
     <script src="bootstrap/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 
