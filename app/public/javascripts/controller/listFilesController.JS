@@ -57,7 +57,7 @@ class listFilesController {
     renderList(){
         for(let i =0; i<15;i++){
             let a = document.createElement("a");
-            a.classList.add("list-group-item","list-group-item-action");
+            a.classList.add("list-group-item","list-group-item-action","a-item");
             //a.href = "#"
             a.innerHTML = `
             <div class="container">

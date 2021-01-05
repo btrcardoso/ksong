@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-fixed navbar-expand-lg">
+    <nav class="navbar navbar-fixed navbar-expand-lg navbar-light">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">ksongs</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
           -->
           </ul>
           <div>
-              <button type="button" class="light-switch btn btn-secondary" style="border-radius: 100%;">
+              <button type="button" class="btn btn-light" id="switch-theme" style="border-radius: 100%;">
                   <svg class="bi" width="23" height="23" fill="currentColor">
                     <use xlink:href="bootstrap-icons/bootstrap-icons.svg#brightness-high-fill"/>
                   </svg>
@@ -60,18 +60,18 @@
       
     <div class="d-flex align-items-start">
       <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-        <button type="button" class="btn" id="btn-send-files">
+        <button type="button" class="btn btn-light" id="btn-send-files">
           <svg class="bi" width="17" height="17" fill="currentColor">
             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#upload"/>
           </svg> Send Files
         </button>
         <input style="display:none;" type="file" id="input-files" multiple>
-        <button type="button" class="btn" id="btn-new-folder"> 
+        <button type="button" class="btn btn-light" id="btn-new-folder"> 
           <svg class="bi" width="17" height="17" fill="currentColor">
             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#folder"/>
           </svg> New Folder
         </button>
-        <button type="button" class="btn" id="btn-delete"> 
+        <button type="button" class="btn btn-light" id="btn-delete"> 
           <svg class="bi" width="17" height="17" fill="currentColor">
             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#trash"/>
           </svg> Delete
@@ -104,10 +104,10 @@
     <script src="javascripts/controller/listFilesController.js"></script>
     <script src="javascripts/listFiles.js"></script>
 
-    <!--
+    
     <script src="javascripts/controller/switchController.js"></script>
     <script src="javascripts/switch.js"></script>
-    -->
+    
 
     <!-- Optional JavaScript; choose one of the two! -->
     <!-- Option 1: Bootstrap Bundle with Popper -->
