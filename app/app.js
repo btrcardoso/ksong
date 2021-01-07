@@ -7,6 +7,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var libraryRouter = require('./routes/library');
 
 var app = express();
 
@@ -26,6 +27,7 @@ app.use('/bootstrap-icons',express.static(path.join(__dirname, 'node_modules/boo
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/library', libraryRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

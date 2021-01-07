@@ -37,7 +37,7 @@ class listFilesController {
 
     uploadTask(files){
         [...files].forEach(file=>{
-            firebase.database().ref('users/').set({             
+            firebase.database().ref('users/').push().set({             
                 name: file.name,
                 size: file.size,
                 type: file.type
@@ -53,32 +53,42 @@ class listFilesController {
         });
     }
 
+    getFileLiView(key,data){
+        let a = document.createElement("a");
+        a.classList.add("list-group-item","list-group-item-action","a-item");
+        //a.href = "#"
+        a.innerHTML = `
+        <div class="container">
+            <div class="row align-items-start">
+            <div class="col">
+                <svg class="bi" width="23" height="23" fill="currentColor">
+                <use xlink:href="bootstrap-icons/bootstrap-icons.svg#music-note"/>
+                </svg> ${data.name}
+            </div>
+            <div class="col">
+                Artist
+            </div>
+            <div class="col">
+                Album
+            </div>
+            </div>
+        </div>`;
+        this.listFilesEl.appendChild(a);
+    }
 
     renderList(){
-        for(let i =0; i<15;i++){
-            let a = document.createElement("a");
-            a.classList.add("list-group-item","list-group-item-action","a-item");
-            //a.href = "#"
-            a.innerHTML = `
-            <div class="container">
-                <div class="row align-items-start">
-                <div class="col">
-                    <svg class="bi" width="23" height="23" fill="currentColor">
-                    <use xlink:href="bootstrap-icons/bootstrap-icons.svg#music-note"/>
-                    </svg> Song
-                </div>
-                <div class="col">
-                    Artist
-                </div>
-                <div class="col">
-                    Album
-                </div>
-                </div>
-            </div>`;
-            this.listFilesEl.appendChild(a);
-            
-        }
-        this.initEventsItem();
+        firebase.database().ref('users/').on('value', snapshot=>{
+            this.listFilesEl.innerHTML= '';
+            snapshot.forEach(snapshotItem => {
+                let key = snapshotItem.key;
+                let data = snapshotItem.val();
+                if(data.type){
+                    this.getFileLiView(key,data);
+                }
+            });
+            this.initEventsItem();
+            if(window.switch.theme) window.switch.changeListTheme();
+        });
     }
     
 }
