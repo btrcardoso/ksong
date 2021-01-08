@@ -11,19 +11,19 @@ admin.initializeApp({
 var defaultDatabase = admin.database();
 
 exports.index = (req,res) => {
-	//let data=[];
+	let data=[];
 	defaultDatabase.ref('users/').on('value', snapshot=>{
         snapshot.forEach(snapshotItem => {
             let key = snapshotItem.key;
             let items = snapshotItem.val();
             if(items.type){
-            	data={
+            	data.push({
             		key: key,
             		items: items
-            	};
+            	});
             }
         });
-        console.log(data);
+        console.log(typeof data);
         res.render('index',{title:'Library',data});
     });
 };
