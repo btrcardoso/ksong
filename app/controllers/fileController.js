@@ -1,5 +1,31 @@
+//firebase admin
+var admin = require('firebase-admin');
+var serviceAccount = require("../serviceAccountKey.json");
+
+// fireabse admin pt2
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://ksong-f8993-default-rtdb.firebaseio.com"
+});
+
+var defaultDatabase = admin.database();
+
 exports.index = (req,res) => {
-    res.render('index',{title:'Library'});
+	//let data=[];
+	defaultDatabase.ref('users/').on('value', snapshot=>{
+        snapshot.forEach(snapshotItem => {
+            let key = snapshotItem.key;
+            let items = snapshotItem.val();
+            if(items.type){
+            	data={
+            		key: key,
+            		items: items
+            	};
+            }
+        });
+        console.log(data);
+        res.render('index',{title:'Library',data});
+    });
 };
 
 /*

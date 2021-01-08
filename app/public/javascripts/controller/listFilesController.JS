@@ -5,7 +5,7 @@ class listFilesController {
         this.inputFilesEl = document.querySelector("#input-files");
         this.connectFirebase();
         this.initEvents();
-        this.renderList();
+        //this.renderList();
     }
 
     connectFirebase(){
