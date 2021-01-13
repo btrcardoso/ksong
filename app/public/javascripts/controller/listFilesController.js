@@ -3,10 +3,74 @@ class listFilesController {
         this.listFilesEl = document.querySelector(".list-group");
         this.btnSendFilesEl = document.querySelector("#btn-send-files");
         this.inputFilesEl = document.querySelector("#input-files");
-        this.connectFirebase();
-        this.initEvents();
-        //this.renderList();
+        this.initEvents();    
     }
+
+
+    initEvents(){
+        this.btnSendFilesEl.addEventListener('click',()=>{
+            this.inputFilesEl.click();
+        });
+        this.inputFilesEl.addEventListener('change',event=>{
+            this.uploadTask(event.target.files);
+        });
+    }
+
+    ajaxPromise(method="GET",url="/library",formData=function(){}){
+        return new Promise ((resolve,reject)=>{
+            let xhr = new XMLHttpRequest();
+            xhr.open(method,url);
+            xhr.onload = event=>{
+                try{
+                    resolve(JSON.parse(xhr.responseText));  // responseText retorna o texto recebido de um servidor após o envio de uma solicitação.
+                } catch (e) {
+                    reject(e);
+                }
+            };
+            xhr.send(formData);
+        });
+    }
+
+    ajax(method="GET",url="/library",formData=function(){}){
+        let xhr = new XMLHttpRequest();
+        xhr.open(method,url);
+        xhr.send(formData);
+        
+    }
+
+    uploadTask(files){
+        /*
+        [...files].forEach(file=>{
+            let formData = new FormData();
+            formData.append('file',file);
+            this.ajaxPromise("POST","/library/file_upload",formData).then(response=>{
+                if(!response.err){
+                    console.log("foi");
+                }
+            });
+        });
+        */
+         //send all files
+        let formData = new FormData();
+        [...files].forEach(file=>{
+            formData.append('files[]',file); 
+        });
+        this.ajax("POST","/library/file_upload",formData);
+        
+    }
+
+    initEventsItem(){
+        this.listFilesEl.querySelectorAll("a.list-group-item").forEach(li=>{
+            li.addEventListener('click',()=>{
+               li.classList.toggle('selected');
+           });
+        });
+    }
+
+}
+
+    /*
+
 
     connectFirebase(){
       // Your web app's Firebase configuration
@@ -24,33 +88,6 @@ class listFilesController {
       // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
       firebase.analytics();
-    }
-
-    initEvents(){
-        this.btnSendFilesEl.addEventListener('click',()=>{
-            this.inputFilesEl.click();
-        });
-        this.inputFilesEl.addEventListener('change',event=>{
-            this.uploadTask(event.target.files);
-        });
-    }
-
-    uploadTask(files){
-        [...files].forEach(file=>{
-            firebase.database().ref('users/').push().set({             
-                name: file.name,
-                size: file.size,
-                type: file.type
-            });
-        });
-    }
-
-    initEventsItem(){
-        this.listFilesEl.querySelectorAll("a.list-group-item").forEach(li=>{
-            li.addEventListener('click',()=>{
-               li.classList.toggle('selected');
-           });
-        });
     }
 
     getFileLiView(key,data){
@@ -90,5 +127,4 @@ class listFilesController {
             if(window.switch.theme) window.switch.changeListTheme();
         });
     }
-    
-}
+    */
