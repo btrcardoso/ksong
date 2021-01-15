@@ -4,6 +4,13 @@
   margin-right: auto;
 }
 
+div.toast{
+  position: fixed;
+  width: 45%;
+  bottom: 30;
+  left: 30;
+}
+
 body{
   background-color: rgb(230, 230, 230);
 }
@@ -24,6 +31,9 @@ body{
 .a-item.selected{
   background-color: rgb(179 179 179);
   color: black;
+}
+.toast-progress{
+  background-color: #d2d2d2;
 }
 
 
@@ -46,6 +56,10 @@ body.dark-theme{
 }
 .a-item.dark-theme.selected{
   background-color: #272727;
+  color: white;
+}
+.toast-progress.dark-theme{
+  background-color: #313131;
   color: white;
 }
 

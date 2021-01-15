@@ -3,6 +3,7 @@ class listFilesController {
         this.listFilesEl = document.querySelector(".list-group");
         this.btnSendFilesEl = document.querySelector("#btn-send-files");
         this.inputFilesEl = document.querySelector("#input-files");
+        this.renderList();
         this.initEvents();    
     }
 
@@ -38,6 +39,31 @@ class listFilesController {
         
     }
 
+    renderList(){
+        this.ajaxPromise("POST","/library/files").then(response=>{
+            this.listFilesEl.innerHTML="";
+            response.data.forEach(file=>{
+                let a = document.createElement("a");
+                a.classList.add("list-group-item","list-group-item-action","a-item");
+                //a.href = "#"
+                a.innerHTML = `
+                <div class="container">
+                    <div class="row align-items-start">
+                        <div class="col">
+                            <svg class="bi" width="23" height="23" fill="currentColor">
+                            <use xlink:href="bootstrap-icons/bootstrap-icons.svg#file-earmark-check"/>
+                            </svg> 
+                            ${file.items.name}
+                        </div>
+                    </div>
+                </div>`;
+                this.listFilesEl.appendChild(a);
+            });
+            window.switch.changeListTheme();
+            this.initEventsItem()
+        });
+    }
+
     uploadTask(files){
         /*
         [...files].forEach(file=>{
@@ -55,14 +81,20 @@ class listFilesController {
         [...files].forEach(file=>{
             formData.append('files[]',file); 
         });
-        this.ajax("POST","/library/file_upload",formData);
+        this.ajaxPromise("POST","/library/file_upload",formData);
+        this.renderList();
         
     }
 
     initEventsItem(){
         this.listFilesEl.querySelectorAll("a.list-group-item").forEach(li=>{
-            li.addEventListener('click',()=>{
-               li.classList.toggle('selected');
+            li.addEventListener('click',e=>{
+                if(!e.ctrlKey){
+                    this.listFilesEl.querySelectorAll('a.list-group-item.selected').forEach(el=>{
+                        el.classList.remove('selected');
+                    });
+                }
+                li.classList.toggle("selected");
            });
         });
     }

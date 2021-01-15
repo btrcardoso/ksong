@@ -7,6 +7,8 @@ var file_controller = require('../controllers/fileController');
 router.get('/',file_controller.index);
 
 
+router.post('/files',file_controller.list_files_post);
+
 router.post('/file_upload',file_controller.file_upload_post);
 
 /*

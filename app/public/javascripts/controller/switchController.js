@@ -1,9 +1,10 @@
 class SwitchController {
     constructor() {
-        this.theme = false;
+        this.themeDark =false;
         this.btnSwitchThemeEl = document.querySelector("#switch-theme");
         this.navEl = document.querySelector(".navbar");
         this.listFilesEl = document.querySelector(".list-group");
+        this.toastEl = document.querySelector(".toast-progress");
         this.initEvents();
         this.changeTheme();
     }
@@ -16,22 +17,23 @@ class SwitchController {
 
     changeListTheme(){
         this.listFilesEl.querySelectorAll("a.list-group-item").forEach(item=>{
-            item.classList.toggle("dark-theme",this.theme);
+            item.classList.toggle("dark-theme",this.themeDark);
          });
     }
 
     changeTheme(){
-        
-        this.theme = !this.theme;
-        document.body.classList.toggle("dark-theme",this.theme);
+        this.themeDark = !this.themeDark;
+        document.body.classList.toggle("dark-theme",this.themeDark);
 
-        this.navEl.classList.toggle("dark-theme",this.theme);
-        this.navEl.classList.toggle("navbar-dark",this.theme);
+        this.navEl.classList.toggle("dark-theme",this.themeDark);
+        this.navEl.classList.toggle("navbar-dark",this.themeDark);
 
         document.querySelectorAll(".btn").forEach(btn=>{
-            btn.classList.toggle("dark-theme",this.theme);
-            btn.classList.toggle("btn-dark",this.theme);
+            btn.classList.toggle("dark-theme",this.themeDark);
+            btn.classList.toggle("btn-dark",this.themeDark);
         });
+
+        this.toastEl.classList.toggle("dark-theme",this.themeDark);
         this.changeListTheme();
     }
 }

@@ -12,26 +12,48 @@ var defaultDatabase = admin.database();
 formidable = require('formidable');
 
 exports.index = (req,res) => {
-    console.log("buscando arquivos");
-	let data=[];
-	defaultDatabase.ref('users/').once('value', snapshot=>{
+    res.render('index',{title:'Library'});
+};
+
+exports.list_files_post = (req,res) => {
+    let data=[];
+    defaultDatabase.ref('users/').once('value', snapshot=>{
         snapshot.forEach(snapshotItem => {
             let key = snapshotItem.key;
             let items = snapshotItem.val();
             if(items.type){
-            	data.push({
-            		key: key,
-            		items: items
-            	});
+                data.push({
+                    key: key,
+                    items: items
+                });
             }
         });
-        res.render('index',{title:'Library',data});
+        res.json({data});
     });
-};
-
-
+}
 
 exports.file_upload_post = (req,res) => {
+    //send all files
+    const form = formidable({ multiples: true });
+    form.parse(req, (err, fields, files) => {
+        if(Array.isArray(files["files[]"])){
+            files["files[]"].forEach(file=>{
+                defaultDatabase.ref('users/').push().set({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+            });
+        } else {
+            file = files["files[]"];
+            defaultDatabase.ref('users/').push().set({
+                name: file.name,
+                size: file.size,
+                type: file.type
+            });
+        }      
+    });
+    // send a file
     /*
     const form = formidable({ multiples: true });
     form.parse(req, (err, fields, files) => {
@@ -45,28 +67,6 @@ exports.file_upload_post = (req,res) => {
         });
     });
     */
-    // send all files
-    
-    const form = formidable({ multiples: true });
-    form.parse(req, (err, fields, files) => {
-        if(Array.isArray(files["files[]"])){
-            files["files[]"].forEach(file=>{
-                defaultDatabase.ref('users/').push().set({
-                    name: file.name,
-                    size: file.size,
-                    type: file.type
-                });
-            });
-        }    
-    });
-    
-        let data = [];
-        data.push({
-                    key: "key",
-                    items: "items"
-                });
-        res.render('listFiles',{data});  
-    
 };
 
 /*
