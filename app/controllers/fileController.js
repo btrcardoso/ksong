@@ -16,29 +16,39 @@ exports.index = (req,res) => {
 };
 
 exports.list_files_post = (req,res) => {
-    let data=[];
-    defaultDatabase.ref('users/').once('value', snapshot=>{
-        snapshot.forEach(snapshotItem => {
-            let key = snapshotItem.key;
-            let items = snapshotItem.val();
-            if(items.type){
-                data.push({
-                    key: key,
-                    items: items
-                });
-            }
+    const form = formidable();
+    form.parse(req, (response, fields, files)=>{
+        let data=[];
+        defaultDatabase.ref(fields.current_folder).once('value', snapshot=>{
+            snapshot.forEach(snapshotItem => {
+                let key = snapshotItem.key;
+                let items = snapshotItem.val();
+                if(items.type){
+                    data.push({
+                        key: key,
+                        items: items
+                    });
+                }
+            });
+            res.json({data});
         });
-        res.json({data});
+        
     });
+    
 }
 
 exports.file_upload_post = (req,res) => {
     //send all files
     const form = formidable({ multiples: true });
     form.parse(req, (err, fields, files) => {
+
+        //apagar
+        console.log("criando arquivo em:"+fields.current_folder);
+        console.log(fields.chamando);
+
         if(Array.isArray(files["files[]"])){
             files["files[]"].forEach(file=>{
-                defaultDatabase.ref('users/').push().set({
+                defaultDatabase.ref(fields.current_folder).push().set({
                     name: file.name,
                     size: file.size,
                     type: file.type
@@ -46,7 +56,7 @@ exports.file_upload_post = (req,res) => {
             });
         } else {
             file = files["files[]"];
-            defaultDatabase.ref('users/').push().set({
+            defaultDatabase.ref(fields.current_folder).push().set({
                 name: file.name,
                 size: file.size,
                 type: file.type
@@ -68,6 +78,22 @@ exports.file_upload_post = (req,res) => {
     });
     */
 };
+
+exports.new_folder_post = (req,res) => {
+    const form = formidable();
+    form.parse(req, (err, fields, files) => {
+        
+        //apagar
+        console.log("criando pasta em:"+fields.current_folder);
+        console.log(fields.chamando);
+
+        defaultDatabase.ref(fields.current_folder).push().set({
+            name: fields.name,
+            path: fields.current_folder,
+            type: "folder"
+        });
+    });
+}
 
 /*
 exports.file_upload_get = (req,res) => {

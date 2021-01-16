@@ -1,6 +1,6 @@
 class SwitchController {
     constructor() {
-        this.themeDark =false;
+        this.themeDark =true;
         this.btnSwitchThemeEl = document.querySelector("#switch-theme");
         this.navEl = document.querySelector(".navbar");
         this.listFilesEl = document.querySelector(".list-group");

@@ -11,6 +11,8 @@ router.post('/files',file_controller.list_files_post);
 
 router.post('/file_upload',file_controller.file_upload_post);
 
+router.post('/new_folder',file_controller.new_folder_post);
+
 /*
 
 router.get('/file/upload',file_controller.file_upload_get);
