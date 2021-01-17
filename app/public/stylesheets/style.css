@@ -39,6 +39,7 @@ body{
 
 body.dark-theme{
   background-color: rgb(63, 62, 62);
+  color: white;
 }
 .navbar.dark-theme{
   background-color: rgb(27 26 26);

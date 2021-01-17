@@ -73,7 +73,12 @@
           <svg class="bi" width="17" height="17" fill="currentColor">
             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#trash"/>
           </svg> Delete
-        </button>  
+        </button>
+        <button type="button" class="btn btn-light" id="btn-rename"> 
+          <svg class="bi" width="17" height="17" fill="currentColor">
+            <use xlink:href="bootstrap-icons/bootstrap-icons.svg#pen"/>
+          </svg> Rename
+        </button>
       </div>
       <div style="width:100%;">
         <div>
@@ -92,9 +97,9 @@
       </div>
     </div>
 
-    <div class="toast d-flex align-items-center fade hide toast-progress" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast d-flex align-items-center fade hide toast-progress" role="alert" aria-live="assertive" aria-atomic="true"  id="toast-progress">
       <div class="toast-body">
-        oi
+        Loading files...
       </div>
     </div>
 

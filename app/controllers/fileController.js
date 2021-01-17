@@ -19,7 +19,7 @@ exports.list_files_post = (req,res) => {
     const form = formidable();
     form.parse(req, (response, fields, files)=>{
         let data=[];
-        defaultDatabase.ref(fields.current_folder).once('value', snapshot=>{
+        defaultDatabase.ref(fields.folder).once('value', snapshot=>{
             snapshot.forEach(snapshotItem => {
                 let key = snapshotItem.key;
                 let items = snapshotItem.val();
@@ -38,17 +38,28 @@ exports.list_files_post = (req,res) => {
 }
 
 exports.file_upload_post = (req,res) => {
-    //send all files
+    // send a file
     const form = formidable({ multiples: true });
     form.parse(req, (err, fields, files) => {
 
-        //apagar
-        console.log("criando arquivo em:"+fields.current_folder);
-        console.log(fields.chamando);
+        defaultDatabase.ref(fields.folder).push().set({
+            name: files.content.name,
+            size: files.content.size,
+            type: files.content.type
+        },error => {
+            let err = (error) ? true : false;
+            res.json({err});
+        });
+    });
+
+    //send all files
+    /*
+    const form = formidable({ multiples: true });
+    form.parse(req, (err, fields, files) => {
 
         if(Array.isArray(files["files[]"])){
             files["files[]"].forEach(file=>{
-                defaultDatabase.ref(fields.current_folder).push().set({
+                defaultDatabase.ref(fields.folder).push().set({
                     name: file.name,
                     size: file.size,
                     type: file.type
@@ -56,25 +67,12 @@ exports.file_upload_post = (req,res) => {
             });
         } else {
             file = files["files[]"];
-            defaultDatabase.ref(fields.current_folder).push().set({
+            defaultDatabase.ref(fields.folder).push().set({
                 name: file.name,
                 size: file.size,
                 type: file.type
             });
         }      
-    });
-    // send a file
-    /*
-    const form = formidable({ multiples: true });
-    form.parse(req, (err, fields, files) => {
-        defaultDatabase.ref('users/').push().set({
-            name: files.file.name,
-            size: files.file.size,
-            type: files.file.type
-        },error => {
-            let err = (error) ? true : false;
-            res.json({err});
-        });
     });
     */
 };
@@ -82,15 +80,14 @@ exports.file_upload_post = (req,res) => {
 exports.new_folder_post = (req,res) => {
     const form = formidable();
     form.parse(req, (err, fields, files) => {
-        
-        //apagar
-        console.log("criando pasta em:"+fields.current_folder);
-        console.log(fields.chamando);
 
-        defaultDatabase.ref(fields.current_folder).push().set({
-            name: fields.name,
-            path: fields.current_folder,
+        defaultDatabase.ref(fields.folder).push().set({
+            name: fields.content,
+            path: fields.folder,
             type: "folder"
+        }, error => {
+            let err = (error) ? true : false;
+            res.json({err});
         });
     });
 }

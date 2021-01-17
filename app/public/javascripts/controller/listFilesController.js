@@ -1,13 +1,16 @@
 class listFilesController {
     constructor(){
-        this.currentFolder = ["home"];
+        this.currentFolder = ["Home"];
         this.listFilesEl = document.querySelector(".list-group");
         this.btnSendFilesEl = document.querySelector("#btn-send-files");
         this.btnNewFolder = document.querySelector("#btn-new-folder");
+        this.btnDelete = document.querySelector("#btn-delete");
+        this.btnRename = document.querySelector("#btn-rename");
         this.inputFilesEl = document.querySelector("#input-files");
         this.olBreadCrumb = document.querySelector(".breadcrumb");
+        this.toastProgressEl = document.querySelector("#toast-progress");
         this.initEvents(); 
-        this.openFolder(this.currentFolder.join("/"));   
+        this.openFolder(this.currentFolder.join("/"));  
     }
 
 
@@ -16,25 +19,81 @@ class listFilesController {
             this.inputFilesEl.click();
         });
         this.inputFilesEl.addEventListener('change',event=>{
-            this.uploadTask(event.target.files);
+            //this.uploadTask(event.target.files);
+            let files = event.target.files;
+            let folder = this.currentFolder.join('/');
+            this.showToastProgress();
+            [...files].forEach(file=>{
+                this.addSomething(file,"/library/file_upload",folder);
+            });
+
+            /*
+            //this.uploadTask(event.target.files);
+            let files = event.target.files;
+            let folder = this.currentFolder.join('/');
+            [...files].forEach(file=>{
+                let formData = new FormData();
+                formData.append('file',file);
+                this.ajaxPromise("POST","/library/file_upload",formData,folder).then(response=>{
+                    if(!response.err) {
+                        this.renderList();
+                    }
+                });
+            });
+            */
         });
+
         this.btnNewFolder.addEventListener('click',event=>{
             let name = prompt('Folder name:');
-            if(name=="") name = "New folder";
-            let formData = new FormData();
-            formData.append('name',name);
-            this.ajaxPromise("POST","/library/new_folder",formData);
-            this.renderList();
+            if(name!=null){
+                if(name=="") name = "New folder";
+                this.showToastProgress();
+                this.addSomething(name,"/library/new_folder",this.currentFolder.join("/"));
+            }
+
+            /*
+            let name = prompt('Folder name:');
+            if(name!=null){
+                if(name=="") name = "New folder";
+                let formData = new FormData();
+                formData.append('name',name);
+                this.ajaxPromise("POST","/library/new_folder",formData).then(response=>{
+                    if(!response.err) {
+                        this.renderList();
+                    }
+                });
+            }
+            */
         });
     }
 
-    ajaxPromise(method="GET",url="/library",formData=new FormData()){
+    showToastProgress(bool = true){
+        if (bool){
+            this.toastProgressEl.classList.remove('hide');
+            this.toastProgressEl.classList.add('show');
+        } else {
+            this.toastProgressEl.classList.remove('show');
+            this.toastProgressEl.classList.add('hide');
+        }
+    }
+
+    addSomething(content,url,folder){
+        //this.disabledButtons();
+        let formData = new FormData();
+        formData.append('content',content);
+        this.ajaxPromise("POST",url,formData,folder).then(response=>{
+            if(!response.err) {
+                this.renderList();
+                this.showToastProgress(false);
+            } else {
+                this.toastProgressEl.innerHTML = `<div class="toast-body">Error</div>`;
+            }
+        });
+    }
+
+    ajaxPromise(method="GET",url="/library",formData=new FormData(),folder=this.currentFolder.join("/")){
         return new Promise ((resolve,reject)=>{
-            formData.append('current_folder',this.currentFolder.join('/'));
-
-            //apagar
-            formData.append('chamando','chamado por ajaxPromise');
-
+            formData.append('folder',folder);
             let xhr = new XMLHttpRequest();
             xhr.open(method,url);
             xhr.send(formData);
@@ -75,9 +134,12 @@ class listFilesController {
     disabledButtons(bool = true){
         this.btnNewFolder.disabled = bool;
         this.btnSendFilesEl.disabled = bool;
+        this.btnDelete.disabled = bool;
+        this.btnRename.disabled = bool;
     }
 
     renderList(){
+        this.disabledButtons();
         this.ajaxPromise("POST","/library/files").then(response=>{
             this.listFilesEl.innerHTML="";
             response.data.forEach(file=>{
@@ -98,37 +160,41 @@ class listFilesController {
                 </div>`;
                 this.listFilesEl.appendChild(a);
             });
+
+            if(response.data.length==0) this.listFilesEl.innerHTML="There are no files.";
             window.switch.changeListTheme();
             this.initEventsItem();
+            this.disabledButtons(false);
         });
     }
 
+    /*
     uploadTask(files){
-        /*
+        //send 1 file
+        let folder = this.currentFolder.join('/');
         [...files].forEach(file=>{
             let formData = new FormData();
             formData.append('file',file);
-            this.ajaxPromise("POST","/library/file_upload",formData).then(response=>{
-                if(!response.err){
-                    console.log("foi");
+            this.ajaxPromise("POST","/library/file_upload",formData,folder).then(response=>{
+                if(!response.err) {
+                    this.renderList();
                 }
             });
         });
-        */
+        
          //send all files
         let formData = new FormData();
         [...files].forEach(file=>{
-            console.log(file);
             formData.append('files[]',file);
         });
         this.ajaxPromise("POST","/library/file_upload",formData);
         this.renderList();
         
+        
     }
+    */
 
     openFolder(folder){
-        
-        console.log(this.currentFolder);
         this.olBreadCrumb.innerHTML = "";
         let folders = [];
         for(let i = 0; i<this.currentFolder.length; i++){
@@ -138,11 +204,14 @@ class listFilesController {
             folders.push(this.currentFolder[i]);
             li.dataset.path = folders.join('/');
             this.olBreadCrumb.appendChild(li);
-            li.addEventListener('click',()=>{
-                this.currentFolder = li.dataset.path.split('/');
-                this.openFolder();
-            });
+            if(i != this.currentFolder.length - 1){
+                li.addEventListener('click',()=>{
+                    this.currentFolder = li.dataset.path.split('/');
+                    this.openFolder();
+                });
+            }
         }
+        this.listFilesEl.innerHTML="Loading...";
         this.renderList();
         
         /*
@@ -161,9 +230,9 @@ class listFilesController {
     }
 
     initEventsItem(){
-        this.listFilesEl.querySelectorAll("a.list-group-item").forEach(li=>{
-            li.addEventListener('dblclick',e=>{
-                let data = JSON.parse(li.dataset.file);
+        this.listFilesEl.querySelectorAll("a.list-group-item").forEach(a=>{
+            a.addEventListener('dblclick',e=>{
+                let data = JSON.parse(a.dataset.file);
                 switch(data.type){
                     case 'folder':
                         this.currentFolder.push(data.name);
@@ -171,13 +240,13 @@ class listFilesController {
                         break;
                 }
             });
-            li.addEventListener('click',e=>{
+            a.addEventListener('click',e=>{
                 if(!e.ctrlKey){
                     this.listFilesEl.querySelectorAll('a.list-group-item.selected').forEach(el=>{
                         el.classList.remove('selected');
                     });
                 }
-                li.classList.toggle("selected");
+                a.classList.toggle("selected");
            });
         });
     }
