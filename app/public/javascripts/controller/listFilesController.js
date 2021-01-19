@@ -1,6 +1,7 @@
 class listFilesController {
     constructor(){
         this.currentFolder = ["Home"];
+        this.onselectionchange = new Event('selectionchange');
         this.listFilesEl = document.querySelector(".list-group");
         this.btnSendFilesEl = document.querySelector("#btn-send-files");
         this.btnNewFolder = document.querySelector("#btn-new-folder");
@@ -13,34 +14,42 @@ class listFilesController {
         this.openFolder(this.currentFolder.join("/"));  
     }
 
+    getElementsSelected(){
+        return this.listFilesEl.querySelectorAll("a.list-group-item.selected");
+    }
+
+    styleButtons(){
+        switch(this.getElementsSelected().length){
+            case 0:
+                this.btnDelete.style.display = 'none';
+                this.btnRename.style.display = 'none';
+                break;
+            case 1:
+                this.btnDelete.style.display = 'block';
+                this.btnRename.style.display = 'block';
+                break;
+            default:
+                this.btnDelete.style.display = 'block';
+                this.btnRename.style.display = 'none';
+        }
+    }
+
 
     initEvents(){
+        this.listFilesEl.addEventListener('selectionchange',e=>{
+            this.styleButtons();
+        });
+
         this.btnSendFilesEl.addEventListener('click',()=>{
             this.inputFilesEl.click();
         });
+        
         this.inputFilesEl.addEventListener('change',event=>{
-            //this.uploadTask(event.target.files);
-            let files = event.target.files;
             let folder = this.currentFolder.join('/');
             this.showToastProgress();
-            [...files].forEach(file=>{
-                this.addSomething(file,"/library/file_upload",folder);
+            [...event.target.files].forEach(file=>{
+                this.addChanges(file,"/file_upload",folder);
             });
-
-            /*
-            //this.uploadTask(event.target.files);
-            let files = event.target.files;
-            let folder = this.currentFolder.join('/');
-            [...files].forEach(file=>{
-                let formData = new FormData();
-                formData.append('file',file);
-                this.ajaxPromise("POST","/library/file_upload",formData,folder).then(response=>{
-                    if(!response.err) {
-                        this.renderList();
-                    }
-                });
-            });
-            */
         });
 
         this.btnNewFolder.addEventListener('click',event=>{
@@ -48,22 +57,51 @@ class listFilesController {
             if(name!=null){
                 if(name=="") name = "New folder";
                 this.showToastProgress();
-                this.addSomething(name,"/library/new_folder",this.currentFolder.join("/"));
+                this.addChanges(name,"/new_folder");
             }
+        });
 
-            /*
-            let name = prompt('Folder name:');
-            if(name!=null){
-                if(name=="") name = "New folder";
-                let formData = new FormData();
-                formData.append('name',name);
-                this.ajaxPromise("POST","/library/new_folder",formData).then(response=>{
-                    if(!response.err) {
-                        this.renderList();
-                    }
-                });
+        this.btnDelete.addEventListener('click',event=>{
+            let folder = this.currentFolder.join('/');
+            this.showToastProgress();
+            this.getElementsSelected().forEach(a=>{
+                let key = JSON.parse(a.dataset.key);
+                let type = JSON.parse(a.dataset.file).type;
+                let content = (type!="folder") ? key : JSON.stringify({key: key, name: JSON.parse(a.dataset.file).name});
+                let url = (type!="folder") ? `/file_delete` : `/folder_delete`;
+                this.addChanges(content,url,folder);
+            });
+        });
+
+        this.btnRename.addEventListener('click',event=>{
+            let a = this.getElementsSelected()[0];
+            let newName = prompt('Renomeie o arquivo:');
+            if(newName!=null && newName!=""){
+                this.showToastProgress();
+                let key = JSON.parse(a.dataset.key);
+                let file = JSON.parse(a.dataset.file);
+                let type = file.type;
+                let oldName = file.name;
+                file.name = newName;
+                let content = (type!="folder") ? JSON.stringify({key, file}) : JSON.stringify({key, file,oldName, newName});
+                let url = (type!="folder") ? `/file_rename` : `/folder_rename`;
+                this.addChanges(content,url);
             }
-            */
+        });
+    }
+
+    addChanges(content,url,folder=this.currentFolder.join("/")){
+        this.disabledButtons();
+        let formData = new FormData();
+        formData.append('content',content);
+        this.ajaxPromise("POST",url,formData,folder).then(response=>{
+            if(!response.err) {
+                this.renderList();
+                this.showToastProgress(false);
+                this.disabledButtons(false);
+            } else {
+                this.toastProgressEl.innerHTML = `<div class="toast-body">Didn't is possible to do the changes</div>`;
+            }
         });
     }
 
@@ -77,25 +115,11 @@ class listFilesController {
         }
     }
 
-    addSomething(content,url,folder){
-        //this.disabledButtons();
-        let formData = new FormData();
-        formData.append('content',content);
-        this.ajaxPromise("POST",url,formData,folder).then(response=>{
-            if(!response.err) {
-                this.renderList();
-                this.showToastProgress(false);
-            } else {
-                this.toastProgressEl.innerHTML = `<div class="toast-body">Error</div>`;
-            }
-        });
-    }
-
-    ajaxPromise(method="GET",url="/library",formData=new FormData(),folder=this.currentFolder.join("/")){
+    ajaxPromise(method="GET",url="",formData=new FormData(),folder=this.currentFolder.join("/")){
         return new Promise ((resolve,reject)=>{
             formData.append('folder',folder);
             let xhr = new XMLHttpRequest();
-            xhr.open(method,url);
+            xhr.open(method,"/library"+url);
             xhr.send(formData);
             xhr.onload = event=>{
                 try{
@@ -140,12 +164,14 @@ class listFilesController {
 
     renderList(){
         this.disabledButtons();
-        this.ajaxPromise("POST","/library/files").then(response=>{
+        this.styleButtons();
+        this.ajaxPromise("POST","/files").then(response=>{
             this.listFilesEl.innerHTML="";
             response.data.forEach(file=>{
                 let a = document.createElement("a");
                 a.classList.add("list-group-item","list-group-item-action","a-item");
                 a.dataset.file = JSON.stringify(file.items);
+                a.dataset.key = JSON.stringify(file.key);
                 //a.href = "#"
                 a.innerHTML = `
                 <div class="container">
@@ -165,34 +191,9 @@ class listFilesController {
             window.switch.changeListTheme();
             this.initEventsItem();
             this.disabledButtons(false);
-        });
-    }
 
-    /*
-    uploadTask(files){
-        //send 1 file
-        let folder = this.currentFolder.join('/');
-        [...files].forEach(file=>{
-            let formData = new FormData();
-            formData.append('file',file);
-            this.ajaxPromise("POST","/library/file_upload",formData,folder).then(response=>{
-                if(!response.err) {
-                    this.renderList();
-                }
-            });
         });
-        
-         //send all files
-        let formData = new FormData();
-        [...files].forEach(file=>{
-            formData.append('files[]',file);
-        });
-        this.ajaxPromise("POST","/library/file_upload",formData);
-        this.renderList();
-        
-        
     }
-    */
 
     openFolder(folder){
         this.olBreadCrumb.innerHTML = "";
@@ -213,20 +214,6 @@ class listFilesController {
         }
         this.listFilesEl.innerHTML="Loading...";
         this.renderList();
-        
-        /*
-        let li = document.createElement('li');
-        li.classList.add('breadcrumb-item');
-        li.classList.add('active');
-        li.innerHTML = `${folder}`;
-        li.dataset.path = this.currentFolder.join('/');
-        li.addEventListener('click',()=>{
-            this.currentFolder = li.dataset.path.split('/');
-            this.renderList();
-        });
-        this.olBreadCrumb.appendChild(li);
-        this.renderList();
-        */
     }
 
     initEventsItem(){
@@ -247,6 +234,7 @@ class listFilesController {
                     });
                 }
                 a.classList.toggle("selected");
+                this.listFilesEl.dispatchEvent(this.onselectionchange);
            });
         });
     }

@@ -1,14 +1,10 @@
-//firebase admin
 var admin = require('firebase-admin');
 var serviceAccount = require("../serviceAccountKey.json");
-
-// fireabse admin pt2
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://ksong-f8993-default-rtdb.firebaseio.com"
 });
 var defaultDatabase = admin.database();
-
 formidable = require('formidable');
 
 exports.index = (req,res) => {
@@ -35,13 +31,11 @@ exports.list_files_post = (req,res) => {
         
     });
     
-}
+};
 
 exports.file_upload_post = (req,res) => {
-    // send a file
     const form = formidable({ multiples: true });
     form.parse(req, (err, fields, files) => {
-
         defaultDatabase.ref(fields.folder).push().set({
             name: files.content.name,
             size: files.content.size,
@@ -51,36 +45,11 @@ exports.file_upload_post = (req,res) => {
             res.json({err});
         });
     });
-
-    //send all files
-    /*
-    const form = formidable({ multiples: true });
-    form.parse(req, (err, fields, files) => {
-
-        if(Array.isArray(files["files[]"])){
-            files["files[]"].forEach(file=>{
-                defaultDatabase.ref(fields.folder).push().set({
-                    name: file.name,
-                    size: file.size,
-                    type: file.type
-                });
-            });
-        } else {
-            file = files["files[]"];
-            defaultDatabase.ref(fields.folder).push().set({
-                name: file.name,
-                size: file.size,
-                type: file.type
-            });
-        }      
-    });
-    */
 };
 
 exports.new_folder_post = (req,res) => {
     const form = formidable();
     form.parse(req, (err, fields, files) => {
-
         defaultDatabase.ref(fields.folder).push().set({
             name: fields.content,
             path: fields.folder,
@@ -90,8 +59,78 @@ exports.new_folder_post = (req,res) => {
             res.json({err});
         });
     });
-}
+};
 
+
+exports.file_delete_post = (req,res) => {
+    const form = formidable();
+    form.parse(req,(err,fields,files)=>{
+        defaultDatabase.ref(fields.folder).child(fields.content).remove()
+          .then(function() {
+            res.json({err:false});
+          })
+          .catch(function(error) {
+            res.json({err:true});
+          });
+    });
+};
+
+exports.folder_delete_post = (req, res) => {
+    const form = formidable();
+    form.parse(req,(err,fields,files)=>{
+        content= JSON.parse(fields.content);
+        defaultDatabase.ref(fields.folder).child(content.key).remove()
+          .then(function() {
+            defaultDatabase.ref(fields.folder+"/"+content.name).remove()
+              .then(function() {
+                res.json({err:false});
+              })
+              .catch(function(error) {
+                res.json({err:true});
+              });
+
+          })
+          .catch(function(error) {
+            res.json({err:true});
+          });
+    });
+};
+
+
+exports.file_rename_post = (req,res)=>{
+    const form = formidable();
+    form.parse(req,(err,fields,files)=>{
+        content= JSON.parse(fields.content);
+        defaultDatabase.ref(fields.folder).child(content.key).set(content.file,
+            error => {
+            let err = (error) ? true : false;
+            res.json({err});
+        });
+    });
+};
+
+exports.folder_rename_post = (req,res)=>{
+    const form = formidable();
+    form.parse(req,(err,fields,files)=>{
+        content= JSON.parse(fields.content);
+        defaultDatabase.ref(fields.folder).child(content.key).set(content.file,
+            error => {
+                if(error){
+                    res.json({err:true});
+                } else {
+                    defaultDatabase.ref(fields.folder+"/"+content.oldName).update({key: content.newName})
+                      .then(function() {
+                        res.json({err:false});
+                      })
+                      .catch(function(error) {
+
+                        console.log("errado");
+                        res.json({err:true});
+                      });
+                }
+        });
+    });
+};
 /*
 exports.file_upload_get = (req,res) => {
     res.render('index',{title:"File upload Get"});
@@ -99,9 +138,6 @@ exports.file_upload_get = (req,res) => {
 
 exports.file_delete_get = (req,res) => {
     res.render('index',{title:"file_delete_get"});
-};
-exports.file_delete_post = (req,res) => {
-    res.render('index',{title:"file_delete_post"});
 };
 
 exports.file_update_get = (req,res) => {

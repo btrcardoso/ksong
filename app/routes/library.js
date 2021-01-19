@@ -13,12 +13,19 @@ router.post('/file_upload',file_controller.file_upload_post);
 
 router.post('/new_folder',file_controller.new_folder_post);
 
+router.post('/file_delete',file_controller.file_delete_post);
+
+router.post('/folder_delete',file_controller.folder_delete_post);
+
+router.post('/file_rename',file_controller.file_rename_post);
+
+
+router.post('/folder_rename',file_controller.folder_rename_post);
+
 /*
 
-router.get('/file/upload',file_controller.file_upload_get);
 
 router.get('/file/:id/delete',file_controller.file_delete_get);
-router.post('/file/:id/delete',file_controller.file_delete_post);
 
 router.get('/file/:id/update',file_controller.file_update_get);
 router.post('/file/:id/update',file_controller.file_update_post);
