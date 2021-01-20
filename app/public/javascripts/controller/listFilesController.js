@@ -10,6 +10,8 @@ class listFilesController {
         this.inputFilesEl = document.querySelector("#input-files");
         this.olBreadCrumb = document.querySelector(".breadcrumb");
         this.toastProgressEl = document.querySelector("#toast-progress");
+        this.lastASelected;
+        this.lastIndex;
         this.initEvents(); 
         this.openFolder(this.currentFolder.join("/"));  
     }
@@ -25,15 +27,35 @@ class listFilesController {
                 this.btnRename.style.display = 'none';
                 break;
             case 1:
+                let state = (JSON.parse(this.getElementsSelected()[0].dataset.file).type=="folder") ? "none" : "block";
                 this.btnDelete.style.display = 'block';
-                this.btnRename.style.display = 'block';
+                this.btnRename.style.display = state;
                 break;
             default:
                 this.btnDelete.style.display = 'block';
                 this.btnRename.style.display = 'none';
         }
     }
+    /*
+    repeatName(name){
+        this.contRepeatName = 0;
+        this.ajaxPromise("POST","/files").then(response=>{
+            if(name=="") name = "New folder";
+            response.data.forEach(file=>{
+                if(name==file.items.name) this.contRepeatName+=1;
+            });
+        });
+        if(this.contRepeatName!=0) {
+            name = name + " - Copy";
+            console.log("nome alterado: "+name);
+            this.repeatName(name);
+        } else {
 
+            console.log("nome não alterado: "+name);
+            return name;
+        }
+    }
+*/
 
     initEvents(){
         this.listFilesEl.addEventListener('selectionchange',e=>{
@@ -54,14 +76,34 @@ class listFilesController {
 
         this.btnNewFolder.addEventListener('click',event=>{
             let name = prompt('Folder name:');
-            if(name!=null){
-                if(name=="") name = "New folder";
-                this.showToastProgress();
-                this.addChanges(name,"/new_folder");
+            if(name!=null && name.indexOf("/")<0){
+                this.ajaxPromise("POST","/files").then(response=>{
+                    if(name=="") name = "New folder";
+                    let repeatName = 0;
+                    response.data.forEach(file=>{
+                        if(name==file.items.name) repeatName+=1;
+                    });
+                    if(repeatName==0) {
+                        this.showToastProgress();
+                        this.addChanges(name,"/new_folder");
+                    } else {
+                        alert("This folder already exists.");
+                    }
+                });
             }
+            if(name.indexOf("/")>=0){
+                alert("Do not use '/' in folder name.");
+            }
+            
         });
 
         this.btnDelete.addEventListener('click',event=>{
+            let folder = this.currentFolder.join('/');
+            this.showToastProgress();
+            this.getElementsSelected().forEach(a=>{
+                this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),folder);
+            });
+            /*
             let folder = this.currentFolder.join('/');
             this.showToastProgress();
             this.getElementsSelected().forEach(a=>{
@@ -71,9 +113,18 @@ class listFilesController {
                 let url = (type!="folder") ? `/file_delete` : `/folder_delete`;
                 this.addChanges(content,url,folder);
             });
+            */
         });
 
         this.btnRename.addEventListener('click',event=>{
+            let a = this.getElementsSelected()[0];
+            let newName = prompt('Renomeie o arquivo:');
+            if(newName!=null && newName!=""){
+                this.showToastProgress();
+                this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),this.currentFolder.join("/"),newName);
+                
+            }
+            /*
             let a = this.getElementsSelected()[0];
             let newName = prompt('Renomeie o arquivo:');
             if(newName!=null && newName!=""){
@@ -87,7 +138,24 @@ class listFilesController {
                 let url = (type!="folder") ? `/file_rename` : `/folder_rename`;
                 this.addChanges(content,url);
             }
+            */
         });
+    }
+
+    sendData(key,file,folder,newName=null){
+        let type = file.type;
+        let content;
+        let url;
+        if (newName) { //is rename
+            let oldName = file.name;
+            file.name = newName;
+            content = (type!="folder") ? JSON.stringify({key, file}) : JSON.stringify({key, file,oldName, newName});
+            url = (type!="folder") ? `/file_rename` : `/folder_rename`;
+        } else { //is delete
+            content = (type!="folder") ? key : JSON.stringify({key, name: file.name});
+            url = (type!="folder") ? `/file_delete` : `/folder_delete`;
+        }
+        this.addChanges(content,url,folder);
     }
 
     addChanges(content,url,folder=this.currentFolder.join("/")){
@@ -191,7 +259,7 @@ class listFilesController {
             window.switch.changeListTheme();
             this.initEventsItem();
             this.disabledButtons(false);
-
+            this.lastASelected = undefined;
         });
     }
 
@@ -216,8 +284,12 @@ class listFilesController {
         this.renderList();
     }
 
+    listFilesArray(){
+        return this.listFilesEl.querySelectorAll("a.list-group-item");
+    }
+
     initEventsItem(){
-        this.listFilesEl.querySelectorAll("a.list-group-item").forEach(a=>{
+        this.listFilesArray().forEach((a,indexA)=>{
             a.addEventListener('dblclick',e=>{
                 let data = JSON.parse(a.dataset.file);
                 switch(data.type){
@@ -228,13 +300,42 @@ class listFilesController {
                 }
             });
             a.addEventListener('click',e=>{
-                if(!e.ctrlKey){
-                    this.listFilesEl.querySelectorAll('a.list-group-item.selected').forEach(el=>{
-                        el.classList.remove('selected');
-                    });
+                if(e.shiftKey && this.lastASelected){
+                    let indexStart;
+                    let indexEnd;
+                    let keyAtualA = JSON.parse(a.dataset.key);
+                    for(let i = 0; i < this.listFilesArray().length-1;i++){
+                        let keyItemList = JSON.parse(this.listFilesArray()[i].dataset.key);
+                        indexStart = i;
+                        if(keyItemList===this.lastASelected.key){
+                            indexEnd = indexA;
+                            break;
+                        }
+                        if(keyItemList===keyAtualA){
+                            indexEnd = this.lastASelected.index;
+                            break;
+                        }
+                    }
+                    if(this.lastIndex){
+                        for(let i = this.lastIndex.indexStart; i<=this.lastIndex.indexEnd; i++){
+                            this.listFilesArray()[i].classList.remove('selected');
+                        }
+                    }
+                    for(let i = indexStart; i<=indexEnd; i++){
+                        this.listFilesArray()[i].classList.add('selected');
+                    }
+                    this.lastIndex = {indexStart,indexEnd};    
+                } else {
+                    if(!e.ctrlKey){
+                        this.listFilesEl.querySelectorAll('a.list-group-item.selected').forEach(el=>{
+                            el.classList.remove('selected');
+                        });
+                    }
+                    a.classList.toggle("selected");
+                    this.listFilesEl.dispatchEvent(this.onselectionchange);
+                    this.lastASelected = {index:indexA,key:JSON.parse(a.dataset.key)};
+                    this.lastIndex = undefined;
                 }
-                a.classList.toggle("selected");
-                this.listFilesEl.dispatchEvent(this.onselectionchange);
            });
         });
     }

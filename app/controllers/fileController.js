@@ -109,6 +109,7 @@ exports.file_rename_post = (req,res)=>{
     });
 };
 
+//nao ta fazendo tudo
 exports.folder_rename_post = (req,res)=>{
     const form = formidable();
     form.parse(req,(err,fields,files)=>{
@@ -118,7 +119,7 @@ exports.folder_rename_post = (req,res)=>{
                 if(error){
                     res.json({err:true});
                 } else {
-                    defaultDatabase.ref(fields.folder+"/"+content.oldName).update({key: content.newName})
+                    defaultDatabase.ref(fields.folder).child(content.oldName).update({key: content.newName})
                       .then(function() {
                         res.json({err:false});
                       })
@@ -128,7 +129,8 @@ exports.folder_rename_post = (req,res)=>{
                         res.json({err:true});
                       });
                 }
-        });
+            }
+        );
     });
 };
 /*
