@@ -5,10 +5,11 @@ admin.initializeApp({
   databaseURL: "https://ksong-f8993-default-rtdb.firebaseio.com"
 });
 var defaultDatabase = admin.database();
+
 formidable = require('formidable');
 
 exports.index = (req,res) => {
-    res.render('index',{title:'Library'});
+    res.render('index',{title:'ksong'});
 };
 
 exports.list_files_post = (req,res) => {
@@ -41,7 +42,12 @@ exports.file_upload_post = (req,res) => {
             size: files.content.size,
             type: files.content.type
         },error => {
-            let err = (error) ? true : false;
+            let err;
+            if(error){
+                err = true;
+            } else {
+                err = false;
+            }
             res.json({err});
         });
     });
@@ -124,8 +130,6 @@ exports.folder_rename_post = (req,res)=>{
                         res.json({err:false});
                       })
                       .catch(function(error) {
-
-                        console.log("errado");
                         res.json({err:true});
                       });
                 }
