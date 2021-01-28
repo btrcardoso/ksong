@@ -297,6 +297,8 @@ class listFilesController {
                         this.currentFolder.push(data.name);
                         this.openFolder(data.name);
                         break;
+                    default:
+                        window.open('/library/file?path='+data.path)
                 }
             });
             a.addEventListener('click',e=>{

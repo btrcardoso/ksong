@@ -22,6 +22,7 @@ router.post('/file_rename',file_controller.file_rename_post);
 
 router.post('/folder_rename',file_controller.folder_rename_post);
 
+router.get('/file',file_controller.file_get);
 /*
 
 

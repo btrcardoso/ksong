@@ -6,7 +6,8 @@ admin.initializeApp({
 });
 var defaultDatabase = admin.database();
 
-formidable = require('formidable');
+var formidable = require('formidable');
+var fs= require('fs');
 
 exports.index = (req,res) => {
     res.render('index',{title:'ksong'});
@@ -45,7 +46,8 @@ exports.file_upload_post = (req,res) => {
         defaultDatabase.ref(fields.folder).push().set({
             name: files.content.name,
             size: files.content.size,
-            type: files.content.type
+            type: files.content.type,
+            path: files.content.path
         },error => {
             let err;
             if(error){
@@ -142,6 +144,23 @@ exports.folder_rename_post = (req,res)=>{
         );
     });
 };
+
+exports.file_get = (req,res)=>{
+    let path = './'+req.query.path;
+    console.log(req.query.path);
+    if(fs.existsSync(path)){
+        fs.readFile(path,(err,data)=>{
+            if(err){
+                console.error(err);
+                res.status(400).json({error:err});
+            } else{
+                res.status(200).end(data);
+            }
+        });
+    } else {
+        res.status(404).json({error:'File not found'});
+    }
+}
 /*
 exports.file_upload_get = (req,res) => {
     res.render('index',{title:"File upload Get"});
