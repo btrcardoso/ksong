@@ -12,6 +12,7 @@ class listFilesController {
         this.toastProgressEl = document.querySelector("#toast-progress");
         this.lastASelected;
         this.lastIndex;
+        this.numberOfFiles=0;
         this.initEvents(); 
         this.openFolder(this.currentFolder.join("/"));  
     }
@@ -36,26 +37,6 @@ class listFilesController {
                 this.btnRename.style.display = 'none';
         }
     }
-    /*
-    repeatName(name){
-        this.contRepeatName = 0;
-        this.ajaxPromise("POST","/files").then(response=>{
-            if(name=="") name = "New folder";
-            response.data.forEach(file=>{
-                if(name==file.items.name) this.contRepeatName+=1;
-            });
-        });
-        if(this.contRepeatName!=0) {
-            name = name + " - Copy";
-            console.log("nome alterado: "+name);
-            this.repeatName(name);
-        } else {
-
-            console.log("nome não alterado: "+name);
-            return name;
-        }
-    }
-*/
 
     initEvents(){
         this.listFilesEl.addEventListener('selectionchange',e=>{
@@ -68,9 +49,12 @@ class listFilesController {
         
         this.inputFilesEl.addEventListener('change',event=>{
             let folder = this.currentFolder.join('/');
+            this.numberOfFiles = [...event.target.files].length;
             this.showToastProgress();
             [...event.target.files].forEach(file=>{
-                this.addChanges(file,"/file_upload",folder);
+                this.addChanges(file,"/file_upload",folder,(event)=>{
+                    this.uploadProgress(event, file);
+                });
             });
         });
 
@@ -103,17 +87,6 @@ class listFilesController {
             this.getElementsSelected().forEach(a=>{
                 this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),folder);
             });
-            /*
-            let folder = this.currentFolder.join('/');
-            this.showToastProgress();
-            this.getElementsSelected().forEach(a=>{
-                let key = JSON.parse(a.dataset.key);
-                let type = JSON.parse(a.dataset.file).type;
-                let content = (type!="folder") ? key : JSON.stringify({key: key, name: JSON.parse(a.dataset.file).name});
-                let url = (type!="folder") ? `/file_delete` : `/folder_delete`;
-                this.addChanges(content,url,folder);
-            });
-            */
         });
 
         this.btnRename.addEventListener('click',event=>{
@@ -124,21 +97,6 @@ class listFilesController {
                 this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),this.currentFolder.join("/"),newName);
                 
             }
-            /*
-            let a = this.getElementsSelected()[0];
-            let newName = prompt('Renomeie o arquivo:');
-            if(newName!=null && newName!=""){
-                this.showToastProgress();
-                let key = JSON.parse(a.dataset.key);
-                let file = JSON.parse(a.dataset.file);
-                let type = file.type;
-                let oldName = file.name;
-                file.name = newName;
-                let content = (type!="folder") ? JSON.stringify({key, file}) : JSON.stringify({key, file,oldName, newName});
-                let url = (type!="folder") ? `/file_rename` : `/folder_rename`;
-                this.addChanges(content,url);
-            }
-            */
         });
     }
 
@@ -158,11 +116,11 @@ class listFilesController {
         this.addChanges(content,url,folder);
     }
 
-    addChanges(content,url,folder=this.currentFolder.join("/")){
+    addChanges(content,url,folder=this.currentFolder.join("/"),onprogress=function(){}){
         this.disabledButtons();
         let formData = new FormData();
         formData.append('content',content);
-        this.ajaxPromise("POST",url,formData,folder).then(response=>{
+        this.ajaxPromise("POST",url,formData,folder,onprogress).then(response=>{
             if(!response.err) {
                 this.renderList();
                 this.showToastProgress(false);
@@ -181,13 +139,36 @@ class listFilesController {
             this.toastProgressEl.classList.remove('show');
             this.toastProgressEl.classList.add('hide');
         }
+        this.changeContenOfToastProgressBody();
+        this.changeContenOfToastProgressHeader();
     }
 
-    ajaxPromise(method="GET",url="",formData=new FormData(),folder=this.currentFolder.join("/")){
+    changeContenOfToastProgressBody(body=`Working...`){
+        this.toastProgressEl.querySelector(".toast-body").innerHTML = body;
+    }
+
+    changeContenOfToastProgressHeader(header=`Loading`){
+        this.toastProgressEl.querySelector(".toast-header").innerHTML = `<strong class="me-auto">${header}</strong>`;
+    }
+
+    showNumberOfFilesToastProgressHeader(){
+        let s = (this.numberOfFiles==1)?``:`s`;
+        this.changeContenOfToastProgressHeader(`Sending ${this.numberOfFiles} file`+s);
+    }
+
+    uploadProgress(event,file){
+        console.log(event.loaded,event.total,file.name);
+        let percent = (event.loaded*100)/event.total;
+        this.showNumberOfFilesToastProgressHeader();
+        this.changeContenOfToastProgressBody(`Loading ${file.name} <strong>${parseInt(percent)}%</strong>`)
+    }
+
+    ajaxPromise(method="GET",url="",formData=new FormData(),folder=this.currentFolder.join("/"),onprogress=function(){}){
         return new Promise ((resolve,reject)=>{
             formData.append('folder',folder);
             let xhr = new XMLHttpRequest();
             xhr.open(method,"/library"+url);
+            xhr.upload.onprogress = onprogress; 
             xhr.send(formData);
             xhr.onload = event=>{
                 try{
@@ -198,6 +179,7 @@ class listFilesController {
             };
         });
     }
+
 
     getIcon(type){
         switch(type){
@@ -260,6 +242,11 @@ class listFilesController {
             this.initEventsItem();
             this.disabledButtons(false);
             this.lastASelected = undefined;
+
+            if(this.numberOfFiles>0){
+                this.numberOfFiles=this.numberOfFiles -1;
+                this.showNumberOfFilesToastProgressHeader();
+            } 
         });
     }
 

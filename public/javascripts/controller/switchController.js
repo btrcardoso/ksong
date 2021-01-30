@@ -4,7 +4,8 @@ class SwitchController {
         this.btnSwitchThemeEl = document.querySelector("#switch-theme");
         this.navEl = document.querySelector(".navbar");
         this.listFilesEl = document.querySelector(".list-group");
-        this.toastEl = document.querySelector(".toast-progress");
+        this.toastEl = document.querySelector(".toast-body");
+        this.toastHeaderEl = document.querySelector(".toast-header");
         this.initEvents();
         this.changeTheme();
     }
@@ -32,8 +33,10 @@ class SwitchController {
             btn.classList.toggle("dark-theme",this.themeDark);
             btn.classList.toggle("btn-dark",this.themeDark);
         });
-
+        
+        this.toastHeaderEl.classList.toggle("dark-theme",this.themeDark);
         this.toastEl.classList.toggle("dark-theme",this.themeDark);
+
         this.changeListTheme();
     }
 }

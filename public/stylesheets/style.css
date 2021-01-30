@@ -32,10 +32,13 @@ body{
   background-color: rgb(179 179 179);
   color: black;
 }
-.toast-progress{
+.toast-body{
   background-color: #d2d2d2;
 }
-
+.toast-header{
+  background-color: rgba(240, 240, 240, 0.85);
+  color: #797979;
+}
 
 body.dark-theme{
   background-color: rgb(63, 62, 62);
@@ -59,8 +62,15 @@ body.dark-theme{
   background-color: #272727;
   color: white;
 }
-.toast-progress.dark-theme{
+.toast-body.dark-theme{
   background-color: #313131;
   color: white;
 }
+.toast-header.dark-theme{
+  background-color: rgba(28, 28, 28, 0.85);
+  color: #ddd;
+}
 
+
+/*background-color: rgba(28, 28, 28, 0.85)
+color: #ddd;*/

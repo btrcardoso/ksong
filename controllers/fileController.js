@@ -37,7 +37,6 @@ exports.list_files_post = (req,res) => {
 
 exports.file_upload_post = (req,res) => {
     //const form = formidable({ multiples: true });
-
     let form = new formidable.IncomingForm({
         uploadDir: './upload',
         keepExtensions: true

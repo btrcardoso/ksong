@@ -1,1 +1,1 @@
-window.switch = new SwitchController(true);
+window.switch = new SwitchController(false);
