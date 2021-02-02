@@ -51,10 +51,49 @@ class listFilesController {
             let folder = this.currentFolder.join('/');
             this.numberOfFiles = [...event.target.files].length;
             this.showToastProgress();
+
+            let promises = [];
             [...event.target.files].forEach(file=>{
+
+                this.disabledButtons();
+                let formData = new FormData();
+                formData.append('content',file);
+
+
+                promises.push(this.ajaxPromise("POST","/file_upload",formData,folder,(event)=>{
+                    this.uploadProgress(event, file);
+                }).then(response=>{
+                    if(!response.err) {
+                        this.renderList();
+                        //this.showToastProgress(false);
+                        //this.disabledButtons(false);
+                    } else {
+                        this.toastProgressEl.innerHTML = `<div class="toast-body">Didn't is possible to do the changes</div>`;
+                    }
+                }));
+
+                /*
+                .then(response=>{
+                    if(!response.err) {
+                        this.renderList();
+                        //this.showToastProgress(false);
+                        //this.disabledButtons(false);
+                    } else {
+                        this.toastProgressEl.innerHTML = `<div class="toast-body">Didn't is possible to do the changes</div>`;
+                    }
+                });
+                */
+
+                /*
                 this.addChanges(file,"/file_upload",folder,(event)=>{
                     this.uploadProgress(event, file);
                 });
+                */
+            });
+
+            Promise.all(promises).then(responses=>{
+                this.showToastProgress(false);
+                this.disabledButtons(false);
             });
         });
 
@@ -94,8 +133,7 @@ class listFilesController {
             let newName = prompt('Renomeie o arquivo:');
             if(newName!=null && newName!=""){
                 this.showToastProgress();
-                this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),this.currentFolder.join("/"),newName);
-                
+                this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),this.currentFolder.join("/"),newName); 
             }
         });
     }

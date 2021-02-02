@@ -42,20 +42,22 @@ exports.file_upload_post = (req,res) => {
         keepExtensions: true
       });
     form.parse(req, (err, fields, files) => {
-        defaultDatabase.ref(fields.folder).push().set({
-            name: files.content.name,
-            size: files.content.size,
-            type: files.content.type,
-            path: files.content.path
-        },error => {
-            let err;
-            if(error){
-                err = true;
-            } else {
-                err = false;
-            }
-            res.json({err});
-        });
+        if(files.content){
+            defaultDatabase.ref(fields.folder).push().set({
+                name: files.content.name,
+                size: files.content.size,
+                type: files.content.type,
+                path: files.content.path
+            },error => {
+                let err;
+                if(error){
+                    err = true;
+                } else {
+                    err = false;
+                }
+                res.json({err});
+            });
+        }         
     });
 };
 
