@@ -4,7 +4,7 @@ class SwitchController {
         this.btnSwitchThemeEl = document.querySelector("#switch-theme");
         this.navEl = document.querySelector(".navbar");
         this.listFilesEl = document.querySelector(".list-group");
-        this.toastEl = document.querySelector(".toast-body");
+        this.toastEl = document.querySelector(".toast-progress");
         this.toastHeaderEl = document.querySelector(".toast-header");
         this.initEvents();
         this.changeTheme();

@@ -32,7 +32,7 @@ body{
   background-color: rgb(179 179 179);
   color: black;
 }
-.toast-body{
+.toast-progress-body{
   background-color: #d2d2d2;
 }
 .toast-header{
@@ -62,7 +62,7 @@ body.dark-theme{
   background-color: #272727;
   color: white;
 }
-.toast-body.dark-theme{
+.toast-progress.dark-theme{
   background-color: #313131;
   color: white;
 }

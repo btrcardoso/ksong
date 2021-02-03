@@ -14,7 +14,7 @@ class listFilesController {
         this.lastIndex;
         this.numberOfFiles=0;
         this.initEvents(); 
-        this.openFolder(this.currentFolder.join("/"));  
+        this.openFolder(this.currentFolder.join("/"));
     }
 
     getElementsSelected(){
@@ -49,51 +49,28 @@ class listFilesController {
         
         this.inputFilesEl.addEventListener('change',event=>{
             let folder = this.currentFolder.join('/');
-            this.numberOfFiles = [...event.target.files].length;
-            this.showToastProgress();
-
+            this.numberOfFiles += [...event.target.files].length;
+            //this.showToastProgress();
             let promises = [];
             [...event.target.files].forEach(file=>{
-
-                this.disabledButtons();
+                //this.disabledButtons();
                 let formData = new FormData();
                 formData.append('content',file);
-
-
                 promises.push(this.ajaxPromise("POST","/file_upload",formData,folder,(event)=>{
                     this.uploadProgress(event, file);
-                }).then(response=>{
+                }/*,event=>{
+                    this.addInfoOnToast(event, file);
+                }*/).then(response=>{
                     if(!response.err) {
                         this.renderList();
-                        //this.showToastProgress(false);
-                        //this.disabledButtons(false);
                     } else {
-                        this.toastProgressEl.innerHTML = `<div class="toast-body">Didn't is possible to do the changes</div>`;
+                        this.changeContenOfToastProgressBody("Didn't is possible to do the changes");
                     }
                 }));
-
-                /*
-                .then(response=>{
-                    if(!response.err) {
-                        this.renderList();
-                        //this.showToastProgress(false);
-                        //this.disabledButtons(false);
-                    } else {
-                        this.toastProgressEl.innerHTML = `<div class="toast-body">Didn't is possible to do the changes</div>`;
-                    }
-                });
-                */
-
-                /*
-                this.addChanges(file,"/file_upload",folder,(event)=>{
-                    this.uploadProgress(event, file);
-                });
-                */
             });
-
             Promise.all(promises).then(responses=>{
                 this.showToastProgress(false);
-                this.disabledButtons(false);
+                //this.disabledButtons(false);
             });
         });
 
@@ -164,7 +141,7 @@ class listFilesController {
                 this.showToastProgress(false);
                 this.disabledButtons(false);
             } else {
-                this.toastProgressEl.innerHTML = `<div class="toast-body">Didn't is possible to do the changes</div>`;
+                this.changeContenOfToastProgressBody("Didn't is possible to do the changes");
             }
         });
     }
@@ -189,23 +166,34 @@ class listFilesController {
         this.toastProgressEl.querySelector(".toast-header").innerHTML = `<strong class="me-auto">${header}</strong>`;
     }
 
-    showNumberOfFilesToastProgressHeader(){
+    showNumberOfFilesOnToastProgressHeader(){
         let s = (this.numberOfFiles==1)?``:`s`;
         this.changeContenOfToastProgressHeader(`Sending ${this.numberOfFiles} file`+s);
     }
 
-    uploadProgress(event,file){
-        console.log(event.loaded,event.total,file.name);
-        let percent = (event.loaded*100)/event.total;
-        this.showNumberOfFilesToastProgressHeader();
-        this.changeContenOfToastProgressBody(`Loading ${file.name} <strong>${parseInt(percent)}%</strong>`)
+    addInfoOnToast(event,file){
+        let div = document.createElement("div");
+        div.classList.add("toast-body");
+        //div.dataset.xhr = JSON.stringify(file.size);
+        div.innerHTML = `Loading ${file.name} <strong>0%</strong>`;
+        document.getElementById("toast-progress").appendChild(div);
     }
 
-    ajaxPromise(method="GET",url="",formData=new FormData(),folder=this.currentFolder.join("/"),onprogress=function(){}){
+    uploadProgress(event,file){
+        console.log(event.loaded,event.total,file.name);
+        this.showToastProgress();
+        let percent = (event.loaded*100)/event.total;
+        this.showNumberOfFilesOnToastProgressHeader();
+        //this.addInfoOnToast(file,parseInt(percent));
+        this.changeContenOfToastProgressBody(`Loading ${file.name} <strong>${parseInt(percent)}%</strong>`);
+    }
+
+    ajaxPromise(method="GET",url="",formData=new FormData(),folder=this.currentFolder.join("/"),onprogress=function(){},onloadstart=function(){}){
         return new Promise ((resolve,reject)=>{
             formData.append('folder',folder);
             let xhr = new XMLHttpRequest();
             xhr.open(method,"/library"+url);
+            xhr.upload.onloadstart = onloadstart;
             xhr.upload.onprogress = onprogress; 
             xhr.send(formData);
             xhr.onload = event=>{
@@ -283,7 +271,7 @@ class listFilesController {
 
             if(this.numberOfFiles>0){
                 this.numberOfFiles=this.numberOfFiles -1;
-                this.showNumberOfFilesToastProgressHeader();
+                this.showNumberOfFilesOnToastProgressHeader();
             } 
         });
     }
@@ -359,10 +347,10 @@ class listFilesController {
                         });
                     }
                     a.classList.toggle("selected");
-                    this.listFilesEl.dispatchEvent(this.onselectionchange);
                     this.lastASelected = {index:indexA,key:JSON.parse(a.dataset.key)};
                     this.lastIndex = undefined;
                 }
+                this.listFilesEl.dispatchEvent(this.onselectionchange);
            });
         });
     }
