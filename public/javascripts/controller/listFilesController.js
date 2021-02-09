@@ -28,7 +28,8 @@ class listFilesController {
                 this.btnRename.style.display = 'none';
                 break;
             case 1:
-                let state = (JSON.parse(this.getElementsSelected()[0].dataset.file).type=="folder") ? "none" : "block";
+                //let state = (JSON.parse(this.getElementsSelected()[0].dataset.file).type=="folder") ? "none" : "block";
+                let state = "block";
                 this.btnDelete.style.display = 'block';
                 this.btnRename.style.display = state;
                 break;
@@ -45,8 +46,7 @@ class listFilesController {
 
         this.btnSendFilesEl.addEventListener('click',()=>{
             this.inputFilesEl.click();
-        });
-        
+        });        
         this.inputFilesEl.addEventListener('change',event=>{
             let folder = this.currentFolder.join('/');
             this.numberOfFiles += [...event.target.files].length;
@@ -87,7 +87,7 @@ class listFilesController {
                         this.showToastProgress();
                         this.addChanges(name,"/new_folder");
                     } else {
-                        alert("This folder already exists.");
+                        alert("You cannot use this name.");
                     }
                 });
             }
@@ -96,13 +96,52 @@ class listFilesController {
             }
             
         });
-
         this.btnDelete.addEventListener('click',event=>{
             let folder = this.currentFolder.join('/');
             this.showToastProgress();
+
+            /* enviando todos de uma vez*/
+
+            let contentArray = [];
+            let url = `/file_delete`;
+            let key;
+            let file;
+            this.getElementsSelected().forEach(a=>{
+                key = JSON.parse(a.dataset.key);
+                file = JSON.parse(a.dataset.file);
+                contentArray.push(JSON.stringify({key, file}));
+            });
+
+
+            this.addChanges(contentArray,url,folder,'content[]');
+            /*
+                this.disabledButtons();
+                let formData = new FormData();
+                formData.append('content[]',contentArray);
+                this.ajaxPromise("POST",url,formData,folder,onprogress=function(){}).then(response=>{
+                    if(!response.err) {
+                        this.renderList();
+                        this.showToastProgress(false);
+                        this.disabledButtons(false);
+                    } else {
+                        console.log("erro");
+                        this.changeContenOfToastProgressBody("Didn't is possible to do the changes");
+                    }
+                });
+            */
+
+            /* enviando um de cada vez*/
+            /*
             this.getElementsSelected().forEach(a=>{
                 this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),folder);
             });
+            */
+        });
+
+        document.addEventListener('keydown',e=>{
+            if(e.key=='Delete'){
+                this.btnDelete.click();
+            }
         });
 
         this.btnRename.addEventListener('click',event=>{
@@ -110,7 +149,22 @@ class listFilesController {
             let newName = prompt('Renomeie o arquivo:');
             if(newName!=null && newName!=""){
                 this.showToastProgress();
-                this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),this.currentFolder.join("/"),newName); 
+
+                /* isso */
+                let folder = this.currentFolder.join("/");
+                let key = JSON.parse(a.dataset.key);
+                let file = JSON.parse(a.dataset.file);
+                let type = file.type;
+                let content;
+                let url;
+                let oldName = file.name;
+                file.name = newName;
+                content = (type!="folder") ? JSON.stringify({key, file}) : JSON.stringify({key, file,oldName, newName});
+                url = (type!="folder") ? `/file_rename` : `/folder_rename`;
+                this.addChanges(content,url,folder);
+
+                /* é isso */
+                //this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),this.currentFolder.join("/"),newName); 
             }
         });
     }
@@ -125,22 +179,23 @@ class listFilesController {
             content = (type!="folder") ? JSON.stringify({key, file}) : JSON.stringify({key, file,oldName, newName});
             url = (type!="folder") ? `/file_rename` : `/folder_rename`;
         } else { //is delete
-            content = (type!="folder") ? key : JSON.stringify({key, name: file.name});
+            content = (type!="folder") ? JSON.stringify({key, file}): JSON.stringify({key, name: file.name});
             url = (type!="folder") ? `/file_delete` : `/folder_delete`;
         }
         this.addChanges(content,url,folder);
     }
 
-    addChanges(content,url,folder=this.currentFolder.join("/"),onprogress=function(){}){
+    addChanges(content,url,folder=this.currentFolder.join("/"),contentName='content'){
         this.disabledButtons();
         let formData = new FormData();
-        formData.append('content',content);
-        this.ajaxPromise("POST",url,formData,folder,onprogress).then(response=>{
+        formData.append(contentName,content);
+        this.ajaxPromise("POST",url,formData,folder).then(response=>{
             if(!response.err) {
                 this.renderList();
                 this.showToastProgress(false);
                 this.disabledButtons(false);
             } else {
+                console.log("erro");
                 this.changeContenOfToastProgressBody("Didn't is possible to do the changes");
             }
         });
@@ -180,7 +235,7 @@ class listFilesController {
     }
 
     uploadProgress(event,file){
-        console.log(event.loaded,event.total,file.name);
+        //console.log(event.loaded,event.total,file.name);
         this.showToastProgress();
         let percent = (event.loaded*100)/event.total;
         this.showNumberOfFilesOnToastProgressHeader();
@@ -249,6 +304,10 @@ class listFilesController {
                 a.dataset.file = JSON.stringify(file.items);
                 a.dataset.key = JSON.stringify(file.key);
                 //a.href = "#"
+                let limit = 60;
+                let name = file.items.name.substr(0,limit);
+                if(file.items.name.length>limit) name +="...";
+
                 a.innerHTML = `
                 <div class="container">
                     <div class="row align-items-start">
@@ -256,7 +315,7 @@ class listFilesController {
                             <svg class="bi" width="23" height="23" fill="currentColor">
                             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#${this.getIcon(file.items.type)}"/>
                             </svg> 
-                            ${file.items.name}
+                            ${name}
                         </div>
                     </div>
                 </div>`;
