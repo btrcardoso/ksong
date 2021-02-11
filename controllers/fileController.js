@@ -50,12 +50,12 @@ exports.list_files_post = (req,res) => {
             snapshot.forEach(snapshotItem => {
                 let key = snapshotItem.key;
                 let items = snapshotItem.val();
-                if(items.type){
+                //if(items.type){
                     data.push({
                         key: key,
                         items: items
                     });
-                }
+                //}
             });
             res.json({data});
         });
@@ -194,21 +194,49 @@ exports.file_rename_post = (req,res)=>{
     });
 };
 
+/*
+
 function addFilesAndFolders(folder,oldName,newName){
     defaultDatabase.ref(folder+"/"+oldName).once('value', snapshot=>{
-        console.log(folder+"/"+oldName);
+        console.log(folder,oldName,newName);
         let data = [];
         let err = false;
         snapshot.forEach(snapshotItem => {
-            console.log("key: ");
-            console.log(snapshotItem.key);
-            console.log("typeof key: ",typeof snapshotItem.key);
-            console.log(" ");
-            defaultDatabase.ref(folder+"/"+newName).push().set(snapshotItem.val(), error => {
-                err = (error) ? true : false;
-            });
+            if(item.type){ //não é folder
+                defaultDatabase.ref(folder+"/"+newName).push().set(snapshotItem.val(), error => {
+                    err = (error) ? true : false;
+                });
+            } else { // é folder
+                let folder1 = folder+"/"+oldName;
+                let oldName1 = snapshotItem.key;
+                let newName1 = snapshotItem.key;
+
+                console.log("procurar em: ",folder1);
+                console.log("a pasta com esse nome: ",oldName1);
+                console.log("pra criar uma pasta com esse nome: ",newName1);
+
+                addFilesAndFolders(folder1,oldName1,newName1);
+                //addFilesAndFolders(folder+"/"+newName , snapshotItem.key,folder+"/"+oldName+"/"+snapshotItem.key);
+            }
         });
         //res.json({err});
+    });
+}
+
+*/
+
+function addFilesAndFolders(folder,oldName,newName){
+    defaultDatabase.ref(folder+"/"+oldName).once('value', snapshot=>{
+        console.log(snapshot.numChildren());
+        snapshot.forEach(snapshotItem => {
+            let item = snapshotItem.val();
+            if(item.type){ //isn't folder
+                if(item.type=='folder') item.path=folder+"/"+newName;
+                defaultDatabase.ref(folder+"/"+newName).push().set(item);
+            } else { // is folder
+                addFilesAndFolders(folder, oldName+"/"+snapshotItem.key, newName+"/"+snapshotItem.key);
+            }
+        });
     });
 }
 
@@ -216,27 +244,45 @@ function addFilesAndFolders(folder,oldName,newName){
 exports.folder_rename_post = (req,res)=>{
     const form = formidable();
     form.parse(req,(err,fields,files)=>{
-        content= JSON.parse(fields.content);
+        content = JSON.parse(fields.content);
         defaultDatabase.ref(fields.folder).child(content.key).set(content.file,
             error => {
                 if(error){
                     res.json({err:true});
                 } else {
-                    addFilesAndFolders(fields.folder,content.oldName,content.newName);
+
+
+
                     /*
-                    defaultDatabase.ref(fields.folder+"/"+content.oldName).once('value', snapshot=>{
-                        console.log(fields.folder+"/"+content.oldName);
-                        let data = [];
-                        let err = false;
+                    folder = fields.folder;
+                    oldName = content.oldName;
+                    newName = content.newName;
+                    defaultDatabase.ref(folder+"/"+oldName).once('value', snapshot=>{
+                        let snapshotLength = snapshot.numChildren();
                         snapshot.forEach(snapshotItem => {
-                            console.log(typeof snapshotItem);
-                            defaultDatabase.ref(fields.folder+"/"+content.newName).push().set(snapshotItem.val(), error => {
-                                err = (error) ? true : false;
-                            });
+                            let item = snapshotItem.val();
+                            if(item.type){ //isn't folder
+                                if(item.type=='folder') item.path=folder+"/"+newName;
+                                defaultDatabase.ref(folder+"/"+newName).push().set(item);
+                            } else { // is folder
+                                addFilesAndFolders(folder, oldName+"/"+snapshotItem.key, newName+"/"+snapshotItem.key);
+                            }
+                            snapshotLength-=1;
+                            if(snapshotLength==0){
+                                defaultDatabase.ref(folder+"/"+oldName).remove()
+                                  .then(function() {
+                                    res.json({err:false});
+                                  })
+                                  .catch(function(error) {
+                                    res.json({err:true});
+                                  });
+                            }
                         });
-                        res.json({err});
                     });
+                    
+
                     */
+                    addFilesAndFolders(fields.folder,content.oldName,content.newName);
                     res.json({err:false});
                 }
             }

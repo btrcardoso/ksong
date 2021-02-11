@@ -81,7 +81,8 @@ class listFilesController {
                     if(name=="") name = "New folder";
                     let repeatName = 0;
                     response.data.forEach(file=>{
-                        if(name==file.items.name) repeatName+=1;
+                        if(name==file.key || name==file.items.name) repeatName+=1;
+                        //if(name==file.items.name) repeatName+=1;
                     });
                     if(repeatName==0) {
                         this.showToastProgress();
@@ -91,7 +92,7 @@ class listFilesController {
                     }
                 });
             }
-            if(name.indexOf("/")>=0){
+            if(name!=null && name.indexOf("/")>=0){
                 alert("Do not use '/' in folder name.");
             }
             
@@ -299,27 +300,29 @@ class listFilesController {
         this.ajaxPromise("POST","/files").then(response=>{
             this.listFilesEl.innerHTML="";
             response.data.forEach(file=>{
-                let a = document.createElement("a");
-                a.classList.add("list-group-item","list-group-item-action","a-item");
-                a.dataset.file = JSON.stringify(file.items);
-                a.dataset.key = JSON.stringify(file.key);
-                //a.href = "#"
-                let limit = 60;
-                let name = file.items.name.substr(0,limit);
-                if(file.items.name.length>limit) name +="...";
+                if (file.items.type){
+                    let a = document.createElement("a");
+                    a.classList.add("list-group-item","list-group-item-action","a-item");
+                    a.dataset.file = JSON.stringify(file.items);
+                    a.dataset.key = JSON.stringify(file.key);
+                    //a.href = "#"
+                    let limit = 60;
+                    let name = file.items.name.substr(0,limit);
+                    if(file.items.name.length>limit) name +="...";
 
-                a.innerHTML = `
-                <div class="container">
-                    <div class="row align-items-start">
-                        <div class="col">
-                            <svg class="bi" width="23" height="23" fill="currentColor">
-                            <use xlink:href="bootstrap-icons/bootstrap-icons.svg#${this.getIcon(file.items.type)}"/>
-                            </svg> 
-                            ${name}
+                    a.innerHTML = `
+                    <div class="container">
+                        <div class="row align-items-start">
+                            <div class="col">
+                                <svg class="bi" width="23" height="23" fill="currentColor">
+                                <use xlink:href="bootstrap-icons/bootstrap-icons.svg#${this.getIcon(file.items.type)}"/>
+                                </svg> 
+                                ${name}
+                            </div>
                         </div>
-                    </div>
-                </div>`;
-                this.listFilesEl.appendChild(a);
+                    </div>`;
+                    this.listFilesEl.appendChild(a);
+                }
             });
 
             if(response.data.length==0) this.listFilesEl.innerHTML="There are no files.";
