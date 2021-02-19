@@ -29,9 +29,9 @@ class listFilesController {
                 break;
             case 1:
                 //let state = (JSON.parse(this.getElementsSelected()[0].dataset.file).type=="folder") ? "none" : "block";
-                let state = "block";
+                //let state = "block";
                 this.btnDelete.style.display = 'block';
-                this.btnRename.style.display = state;
+                this.btnRename.style.display = 'block';
                 break;
             default:
                 this.btnDelete.style.display = 'block';
@@ -146,6 +146,10 @@ class listFilesController {
         });
 
         this.btnRename.addEventListener('click',event=>{
+
+            //fazer a parada do folder nao poder repetir nome
+
+
             let a = this.getElementsSelected()[0];
             let newName = prompt('Renomeie o arquivo:');
             if(newName!=null && newName!=""){
@@ -296,11 +300,13 @@ class listFilesController {
 
     renderList(){
         this.disabledButtons();
-        this.styleButtons();
+        // esse aqui
+        //this.styleButtons();
         this.ajaxPromise("POST","/files").then(response=>{
             this.listFilesEl.innerHTML="";
             response.data.forEach(file=>{
-                if (file.items.type){
+                // the second if is to the case of a folder to have type in its name.
+                if (file.items.type && typeof file.items.type!="object"){
                     let a = document.createElement("a");
                     a.classList.add("list-group-item","list-group-item-action","a-item");
                     a.dataset.file = JSON.stringify(file.items);
@@ -334,7 +340,10 @@ class listFilesController {
             if(this.numberOfFiles>0){
                 this.numberOfFiles=this.numberOfFiles -1;
                 this.showNumberOfFilesOnToastProgressHeader();
-            } 
+            }
+
+            // se der errado substitui pelo de cima
+            this.styleButtons();
         });
     }
 

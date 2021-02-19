@@ -240,6 +240,36 @@ function addFilesAndFolders(folder,oldName,newName){
     });
 }
 
+
+function addFilesAndFolders1(obj,folder,newName){
+    Object.keys(obj).forEach(key=>{
+        let item = obj[key];
+        if(item.type){ //isn't folder
+            if(item.type=='folder') item.path=folder+"/"+newName;
+            defaultDatabase.ref(folder+"/"+newName).push().set(item);
+        } else { // is folder
+            addFilesAndFolders1(item,folder, newName+"/"+key);
+        }
+    });
+}
+
+/*
+function percorreObj(obj){
+    console.log()
+    Object.keys(obj).forEach(key=>{
+        let item = obj[key];
+        console.log('key: ',key);
+        console.log('items: ');
+        if(item.type){ //isn't folder
+            console.log(item);
+        } else { // is folder
+            percorreObj(item);
+        }
+        console.log("");
+    });
+}
+*/
+
 //nao ta fazendo tudo
 exports.folder_rename_post = (req,res)=>{
     const form = formidable();
@@ -250,7 +280,27 @@ exports.folder_rename_post = (req,res)=>{
                 if(error){
                     res.json({err:true});
                 } else {
+                    /*
+                     // jeito original
+                    addFilesAndFolders(fields.folder,content.oldName,content.newName);
+                    res.json({err:false});*/
 
+                    defaultDatabase.ref(fields.folder+"/"+content.oldName).once('value', snapshot=>{
+                        if(snapshot.val()) addFilesAndFolders1(snapshot.val(),fields.folder,content.newName);
+                    }).then(function() {
+                        defaultDatabase.ref(fields.folder+"/"+content.oldName).remove()
+                          .then(function() {
+                            res.json({err:false});
+                          })
+                          .catch(function(error) {
+                            res.json({err:true});
+                          });
+                      })
+                      .catch(function(error) {
+                        res.json({err:true});
+                      });
+
+                    
 
 
                     /*
@@ -279,11 +329,7 @@ exports.folder_rename_post = (req,res)=>{
                             }
                         });
                     });
-                    
-
                     */
-                    addFilesAndFolders(fields.folder,content.oldName,content.newName);
-                    res.json({err:false});
                 }
             }
         );
