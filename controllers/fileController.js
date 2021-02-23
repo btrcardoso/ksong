@@ -9,40 +9,11 @@ var defaultDatabase = admin.database();
 var formidable = require('formidable');
 var fs= require('fs');
 
-/*
-function getFiles(folder){
-    this.data=[];
-    defaultDatabase.ref(folder).once('value', snapshot=>{
-        snapshot.forEach(snapshotItem => {
-            let key = snapshotItem.key;
-            let items = snapshotItem.val();
-            if(items.type){
-                this.data.push({
-                    key: key,
-                    items: items
-                });
-            }
-        });
-        console.log("dentro da função: ",this.data);
-    });
-    console.log("fora da função: ",this.data);
-    return this.data;
-}
-*/
-
 exports.index = (req,res) => {
     res.render('index',{title:'ksong'});
 };
 
 exports.list_files_post = (req,res) => {
-    /*
-    const form = formidable();
-    form.parse(req, (response, fields, files)=>{
-        data = getFiles(fields.folder);
-        console.log(data);
-        res.json({data});
-    });
-    */
     const form = formidable();
     form.parse(req, (response, fields, files)=>{
         let data=[];
@@ -63,7 +34,6 @@ exports.list_files_post = (req,res) => {
 };
 
 exports.file_upload_post = (req,res) => {
-    //const form = formidable({ multiples: true });
     let form = new formidable.IncomingForm({
         uploadDir: './upload',
         keepExtensions: true
@@ -102,6 +72,80 @@ exports.new_folder_post = (req,res) => {
     });
 };
 
+/*
+//um de cada vez
+
+function deleteFile(path){
+    if(fs.existsSync(path)){
+      fs.unlink(path, err => {});
+    }
+}
+
+function deleteFilesFromFolder(obj){
+    Object.keys(obj).forEach(key=>{
+        let item = obj[key];
+        if(item.type){ //isn't folder
+            deleteFile(item.path)
+        } else { // is folder
+            deleteFilesFromFolder(item);
+        }
+    });
+}
+
+exports.file_delete_post = (req,res) => {
+    let form = new formidable.IncomingForm({
+        multiples: true,
+        uploadDir: './upload',
+        keepExtensions: true
+    });
+    form.parse(req,(err,fields,files)=>{
+        //let arrayContent = JSON.parse("["+fields['content[]']+"]");
+        //arrayContent.forEach(content=>{
+            content = JSON.parse(fields.content);
+            console.log(content);
+            name = content.file.name;
+            path = content.file.path;
+            type = content.file.type;
+
+            if(type=='folder'){
+                defaultDatabase.ref(path+'/'+name).once('value',snapshot=>{
+                    if(snapshot.val()) deleteFilesFromFolder(snapshot.val());
+                }).then(function(){
+                    defaultDatabase.ref(fields.folder+"/"+name).remove();
+                });
+            } else {
+                deleteFile(path);
+            }
+            defaultDatabase.ref(fields.folder).child(content.key).remove().then(function() {
+                res.json({err:false});
+              })
+              .catch(function(error) {
+                res.json({err:true});
+              });
+        //});
+        //res.json({err:false});
+    });
+};
+
+*/
+
+// de uma vez
+function deleteFile(path){
+    if(fs.existsSync(path)){
+      fs.unlink(path, err => {});
+    }
+}
+
+function deleteFilesFromFolder(obj){
+    Object.keys(obj).forEach(key=>{
+        let item = obj[key];
+        if(item.type){ //isn't folder
+            deleteFile(item.path)
+        } else { // is folder
+            deleteFilesFromFolder(item);
+        }
+    });
+}
 
 exports.file_delete_post = (req,res) => {
     let form = new formidable.IncomingForm({
@@ -111,75 +155,28 @@ exports.file_delete_post = (req,res) => {
     });
     form.parse(req,(err,fields,files)=>{
         let arrayContent = JSON.parse("["+fields['content[]']+"]");
-        let er=false;
-        let msg;
         arrayContent.forEach(content=>{
+            name = content.file.name;
             path = content.file.path;
-            if(fs.existsSync(path)){
-              fs.unlink(path, err => {});
+            type = content.file.type;
+
+            if(type=='folder'){
+                defaultDatabase.ref(path+'/'+name).once('value',snapshot=>{
+                    if(snapshot.val()) deleteFilesFromFolder(snapshot.val());
+                }).then(function(){
+                    defaultDatabase.ref(fields.folder+"/"+name).remove();
+                });
+            } else {
+                deleteFile(path);
             }
-            defaultDatabase.ref(fields.folder).child(content.key).remove().then(function(){
-                if(content.file.type=='folder') {
-                    defaultDatabase.ref(fields.folder+"/"+content.file.name).remove();
-                }
-            });
+            defaultDatabase.ref(fields.folder).child(content.key).remove();
         });
-        res.json({err:er});
-    });
-    /*
-    let form = new formidable.IncomingForm({
-        uploadDir: './upload',
-        keepExtensions: true
-    });
-    form.parse(req,(err,fields,files)=>{
-        content= JSON.parse(fields.content);
-        path = content.file.path;
-
-        console.log(content.key+": "+content.file.path);
-
-        if(fs.existsSync(path)){
-          fs.unlink(path, err => { // Asynchronously removes a file or symbolic link
-            if(err) {
-                console.log("erro");res.status(400).json({err});
-            }
-            else {
-                console.log("apagando: "+content.key)
-                defaultDatabase.ref(fields.folder).child(content.key).remove()
-                  .then(function() {
-                    res.json({err:false});
-                  })
-                  .catch(function(error) {
-                    res.json({err:true});
-                  });
-            }
-          });
-        } else {
-          res.status(404).json({error:'File not found'});
-        }
-    });
-    */
-};
-
-//pode apagar
-exports.folder_delete_post = (req, res) => {
-    const form = formidable();
-    form.parse(req,(err,fields,files)=>{
-        defaultDatabase.ref(fields.folder).child(content.key).remove()
-          .then(function() {
-            defaultDatabase.ref(fields.folder+"/"+content.name).remove()
-              .then(function() {
-                res.json({err:false});
-              })
-              .catch(function(error) {
-                res.json({err:true});
-              });
-
-          })
-          .catch(function(error) {
-            res.json({err:true});
-          });
+        res.json({err:false});
     });
 };
+
+
+
 
 
 exports.file_rename_post = (req,res)=>{
@@ -194,83 +191,19 @@ exports.file_rename_post = (req,res)=>{
     });
 };
 
-/*
-
-function addFilesAndFolders(folder,oldName,newName){
-    defaultDatabase.ref(folder+"/"+oldName).once('value', snapshot=>{
-        console.log(folder,oldName,newName);
-        let data = [];
-        let err = false;
-        snapshot.forEach(snapshotItem => {
-            if(item.type){ //não é folder
-                defaultDatabase.ref(folder+"/"+newName).push().set(snapshotItem.val(), error => {
-                    err = (error) ? true : false;
-                });
-            } else { // é folder
-                let folder1 = folder+"/"+oldName;
-                let oldName1 = snapshotItem.key;
-                let newName1 = snapshotItem.key;
-
-                console.log("procurar em: ",folder1);
-                console.log("a pasta com esse nome: ",oldName1);
-                console.log("pra criar uma pasta com esse nome: ",newName1);
-
-                addFilesAndFolders(folder1,oldName1,newName1);
-                //addFilesAndFolders(folder+"/"+newName , snapshotItem.key,folder+"/"+oldName+"/"+snapshotItem.key);
-            }
-        });
-        //res.json({err});
-    });
-}
-
-*/
-
-function addFilesAndFolders(folder,oldName,newName){
-    defaultDatabase.ref(folder+"/"+oldName).once('value', snapshot=>{
-        console.log(snapshot.numChildren());
-        snapshot.forEach(snapshotItem => {
-            let item = snapshotItem.val();
-            if(item.type){ //isn't folder
-                if(item.type=='folder') item.path=folder+"/"+newName;
-                defaultDatabase.ref(folder+"/"+newName).push().set(item);
-            } else { // is folder
-                addFilesAndFolders(folder, oldName+"/"+snapshotItem.key, newName+"/"+snapshotItem.key);
-            }
-        });
-    });
-}
-
-
-function addFilesAndFolders1(obj,folder,newName){
+function addFilesAndFolders(obj,folder,newName){
     Object.keys(obj).forEach(key=>{
         let item = obj[key];
         if(item.type){ //isn't folder
             if(item.type=='folder') item.path=folder+"/"+newName;
             defaultDatabase.ref(folder+"/"+newName).push().set(item);
         } else { // is folder
-            addFilesAndFolders1(item,folder, newName+"/"+key);
+            addFilesAndFolders(item,folder, newName+"/"+key);
         }
     });
 }
 
-/*
-function percorreObj(obj){
-    console.log()
-    Object.keys(obj).forEach(key=>{
-        let item = obj[key];
-        console.log('key: ',key);
-        console.log('items: ');
-        if(item.type){ //isn't folder
-            console.log(item);
-        } else { // is folder
-            percorreObj(item);
-        }
-        console.log("");
-    });
-}
-*/
 
-//nao ta fazendo tudo
 exports.folder_rename_post = (req,res)=>{
     const form = formidable();
     form.parse(req,(err,fields,files)=>{
@@ -280,13 +213,8 @@ exports.folder_rename_post = (req,res)=>{
                 if(error){
                     res.json({err:true});
                 } else {
-                    /*
-                     // jeito original
-                    addFilesAndFolders(fields.folder,content.oldName,content.newName);
-                    res.json({err:false});*/
-
                     defaultDatabase.ref(fields.folder+"/"+content.oldName).once('value', snapshot=>{
-                        if(snapshot.val()) addFilesAndFolders1(snapshot.val(),fields.folder,content.newName);
+                        if(snapshot.val()) addFilesAndFolders(snapshot.val(),fields.folder,content.newName);
                     }).then(function() {
                         defaultDatabase.ref(fields.folder+"/"+content.oldName).remove()
                           .then(function() {
@@ -299,37 +227,6 @@ exports.folder_rename_post = (req,res)=>{
                       .catch(function(error) {
                         res.json({err:true});
                       });
-
-                    
-
-
-                    /*
-                    folder = fields.folder;
-                    oldName = content.oldName;
-                    newName = content.newName;
-                    defaultDatabase.ref(folder+"/"+oldName).once('value', snapshot=>{
-                        let snapshotLength = snapshot.numChildren();
-                        snapshot.forEach(snapshotItem => {
-                            let item = snapshotItem.val();
-                            if(item.type){ //isn't folder
-                                if(item.type=='folder') item.path=folder+"/"+newName;
-                                defaultDatabase.ref(folder+"/"+newName).push().set(item);
-                            } else { // is folder
-                                addFilesAndFolders(folder, oldName+"/"+snapshotItem.key, newName+"/"+snapshotItem.key);
-                            }
-                            snapshotLength-=1;
-                            if(snapshotLength==0){
-                                defaultDatabase.ref(folder+"/"+oldName).remove()
-                                  .then(function() {
-                                    res.json({err:false});
-                                  })
-                                  .catch(function(error) {
-                                    res.json({err:true});
-                                  });
-                            }
-                        });
-                    });
-                    */
                 }
             }
         );
@@ -351,23 +248,3 @@ exports.file_get = (req,res)=>{
         res.status(404).json({error:'File not found'});
     }
 }
-/*
-exports.file_upload_get = (req,res) => {
-    res.render('index',{title:"File upload Get"});
-}; 
-
-exports.file_delete_get = (req,res) => {
-    res.render('index',{title:"file_delete_get"});
-};
-
-exports.file_update_get = (req,res) => {
-    res.render('index',{title:"File update get"});
-};
-exports.file_update_post = (req,res) => {
-    res.render('index',{title:"File update post"});
-};
-
-exports.file_detail = (req,res) => {
-    res.render('index',{title:"File detail"});
-};
-*/

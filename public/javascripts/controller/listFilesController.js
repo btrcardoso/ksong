@@ -28,8 +28,6 @@ class listFilesController {
                 this.btnRename.style.display = 'none';
                 break;
             case 1:
-                //let state = (JSON.parse(this.getElementsSelected()[0].dataset.file).type=="folder") ? "none" : "block";
-                //let state = "block";
                 this.btnDelete.style.display = 'block';
                 this.btnRename.style.display = 'block';
                 break;
@@ -39,6 +37,61 @@ class listFilesController {
         }
     }
 
+    validateFolderName(name,a=false){
+        if(name!=null){
+            let condition = true;
+            ["/",".", "#", "$", "[","]"].forEach(item=>{
+                if(name.indexOf(item)>=0){
+                    condition = false;
+                }
+            });
+            if(condition){
+                this.ajaxPromise("POST","/files").then(response=>{
+                    let repeatName = 0;
+                    response.data.forEach(file=>{
+                        if(name==file.key || name==file.items.name) repeatName+=1;
+                    });
+                    if(repeatName==0) {
+                        if(a){
+                            this.renameFolder(a,name);
+                        } else {
+                           this.createNewFolder(name);
+                        }
+                    } else {
+                        alert("You cannot use this name.");
+                    }
+                });
+            } else {
+                alert('Do not use "/",".", "#", "$", "[","]" in folder name.');
+            }
+        }
+    }
+
+    createNewFolder(name){
+        this.showToastProgress();
+        this.addChanges(name,"/new_folder");
+    }
+
+    renameFolder(a,newName){
+        this.showToastProgress();
+        let folder = this.currentFolder.join("/");
+        let key = JSON.parse(a.dataset.key);
+        let file = JSON.parse(a.dataset.file);
+        let type = file.type;
+        let content;
+        let url;
+        let oldName = file.name;
+        file.name = newName;
+        if(type=="folder"){
+            content = JSON.stringify({key, file, oldName, newName});
+            url = `/folder_rename`;
+        } else {
+            content = JSON.stringify({key, file});
+            url = `/file_rename`;
+        }
+        this.addChanges(content,url,folder);    
+    }
+
     initEvents(){
         this.listFilesEl.addEventListener('selectionchange',e=>{
             this.styleButtons();
@@ -46,7 +99,8 @@ class listFilesController {
 
         this.btnSendFilesEl.addEventListener('click',()=>{
             this.inputFilesEl.click();
-        });        
+        });  
+
         this.inputFilesEl.addEventListener('change',event=>{
             let folder = this.currentFolder.join('/');
             this.numberOfFiles += [...event.target.files].length;
@@ -76,33 +130,15 @@ class listFilesController {
 
         this.btnNewFolder.addEventListener('click',event=>{
             let name = prompt('Folder name:');
-            if(name!=null && name.indexOf("/")<0){
-                this.ajaxPromise("POST","/files").then(response=>{
-                    if(name=="") name = "New folder";
-                    let repeatName = 0;
-                    response.data.forEach(file=>{
-                        if(name==file.key || name==file.items.name) repeatName+=1;
-                        //if(name==file.items.name) repeatName+=1;
-                    });
-                    if(repeatName==0) {
-                        this.showToastProgress();
-                        this.addChanges(name,"/new_folder");
-                    } else {
-                        alert("You cannot use this name.");
-                    }
-                });
-            }
-            if(name!=null && name.indexOf("/")>=0){
-                alert("Do not use '/' in folder name.");
-            }
-            
+            if(name=="") name = "New folder";
+            this.validateFolderName(name);
         });
+
         this.btnDelete.addEventListener('click',event=>{
             let folder = this.currentFolder.join('/');
             this.showToastProgress();
 
             /* enviando todos de uma vez*/
-
             let contentArray = [];
             let url = `/file_delete`;
             let key;
@@ -112,29 +148,17 @@ class listFilesController {
                 file = JSON.parse(a.dataset.file);
                 contentArray.push(JSON.stringify({key, file}));
             });
-
-
             this.addChanges(contentArray,url,folder,'content[]');
-            /*
-                this.disabledButtons();
-                let formData = new FormData();
-                formData.append('content[]',contentArray);
-                this.ajaxPromise("POST",url,formData,folder,onprogress=function(){}).then(response=>{
-                    if(!response.err) {
-                        this.renderList();
-                        this.showToastProgress(false);
-                        this.disabledButtons(false);
-                    } else {
-                        console.log("erro");
-                        this.changeContenOfToastProgressBody("Didn't is possible to do the changes");
-                    }
-                });
-            */
+            
 
             /* enviando um de cada vez*/
             /*
+            let key;
+            let file;
             this.getElementsSelected().forEach(a=>{
-                this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),folder);
+                key = JSON.parse(a.dataset.key);
+                file = JSON.parse(a.dataset.file);
+                this.addChanges(JSON.stringify({key, file}),`/file_delete`,folder);
             });
             */
         });
@@ -145,32 +169,11 @@ class listFilesController {
             }
         });
 
-        this.btnRename.addEventListener('click',event=>{
-
-            //fazer a parada do folder nao poder repetir nome
-
-
+        this.btnRename.addEventListener('click',event=>{ //fazer a parada do folder nao poder repetir nome
             let a = this.getElementsSelected()[0];
             let newName = prompt('Renomeie o arquivo:');
-            if(newName!=null && newName!=""){
-                this.showToastProgress();
-
-                /* isso */
-                let folder = this.currentFolder.join("/");
-                let key = JSON.parse(a.dataset.key);
-                let file = JSON.parse(a.dataset.file);
-                let type = file.type;
-                let content;
-                let url;
-                let oldName = file.name;
-                file.name = newName;
-                content = (type!="folder") ? JSON.stringify({key, file}) : JSON.stringify({key, file,oldName, newName});
-                url = (type!="folder") ? `/file_rename` : `/folder_rename`;
-                this.addChanges(content,url,folder);
-
-                /* é isso */
-                //this.sendData(JSON.parse(a.dataset.key),JSON.parse(a.dataset.file),this.currentFolder.join("/"),newName); 
-            }
+            if(newName=="") newName=null;
+            this.validateFolderName(newName,a);
         });
     }
 
@@ -258,7 +261,7 @@ class listFilesController {
             xhr.send(formData);
             xhr.onload = event=>{
                 try{
-                    resolve(JSON.parse(xhr.responseText));  // responseText retorna o texto recebido de um servidor após o envio de uma solicitação.
+                    resolve(JSON.parse(xhr.responseText));
                 } catch (e) {
                     reject(e);
                 }
