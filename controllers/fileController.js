@@ -21,12 +21,10 @@ exports.list_files_post = (req,res) => {
             snapshot.forEach(snapshotItem => {
                 let key = snapshotItem.key;
                 let items = snapshotItem.val();
-                //if(items.type){
-                    data.push({
-                        key: key,
-                        items: items
-                    });
-                //}
+                data.push({
+                    key: key,
+                    items: items
+                });
             });
             res.json({data});
         });
@@ -72,64 +70,6 @@ exports.new_folder_post = (req,res) => {
     });
 };
 
-/*
-//um de cada vez
-
-function deleteFile(path){
-    if(fs.existsSync(path)){
-      fs.unlink(path, err => {});
-    }
-}
-
-function deleteFilesFromFolder(obj){
-    Object.keys(obj).forEach(key=>{
-        let item = obj[key];
-        if(item.type){ //isn't folder
-            deleteFile(item.path)
-        } else { // is folder
-            deleteFilesFromFolder(item);
-        }
-    });
-}
-
-exports.file_delete_post = (req,res) => {
-    let form = new formidable.IncomingForm({
-        multiples: true,
-        uploadDir: './upload',
-        keepExtensions: true
-    });
-    form.parse(req,(err,fields,files)=>{
-        //let arrayContent = JSON.parse("["+fields['content[]']+"]");
-        //arrayContent.forEach(content=>{
-            content = JSON.parse(fields.content);
-            console.log(content);
-            name = content.file.name;
-            path = content.file.path;
-            type = content.file.type;
-
-            if(type=='folder'){
-                defaultDatabase.ref(path+'/'+name).once('value',snapshot=>{
-                    if(snapshot.val()) deleteFilesFromFolder(snapshot.val());
-                }).then(function(){
-                    defaultDatabase.ref(fields.folder+"/"+name).remove();
-                });
-            } else {
-                deleteFile(path);
-            }
-            defaultDatabase.ref(fields.folder).child(content.key).remove().then(function() {
-                res.json({err:false});
-              })
-              .catch(function(error) {
-                res.json({err:true});
-              });
-        //});
-        //res.json({err:false});
-    });
-};
-
-*/
-
-// de uma vez
 function deleteFile(path){
     if(fs.existsSync(path)){
       fs.unlink(path, err => {});
@@ -175,10 +115,6 @@ exports.file_delete_post = (req,res) => {
     });
 };
 
-
-
-
-
 exports.file_rename_post = (req,res)=>{
     const form = formidable();
     form.parse(req,(err,fields,files)=>{
@@ -202,7 +138,6 @@ function addFilesAndFolders(obj,folder,newName){
         }
     });
 }
-
 
 exports.folder_rename_post = (req,res)=>{
     const form = formidable();
