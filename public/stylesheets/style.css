@@ -70,6 +70,9 @@ body.dark-theme{
   background-color: rgba(28, 28, 28, 0.85);
   color: #ddd;
 }
+.modal-content.dark-theme{
+  background-color: #484848;
+}
 
 
 /*background-color: rgba(28, 28, 28, 0.85)

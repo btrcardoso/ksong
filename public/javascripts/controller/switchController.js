@@ -6,6 +6,7 @@ class SwitchController {
         this.listFilesEl = document.querySelector(".list-group");
         this.toastEl = document.querySelector(".toast-progress");
         this.toastHeaderEl = document.querySelector(".toast-header");
+        this.modalEl = document.querySelector(".modal-content");
         this.initEvents();
         this.changeTheme();
     }
@@ -36,6 +37,7 @@ class SwitchController {
         
         this.toastHeaderEl.classList.toggle("dark-theme",this.themeDark);
         this.toastEl.classList.toggle("dark-theme",this.themeDark);
+        this.modalEl.classList.toggle("dark-theme",this.themeDark);
 
         this.changeListTheme();
     }

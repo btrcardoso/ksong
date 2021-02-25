@@ -27,7 +27,7 @@
           </svg> Send Files
         </button>
         <input style="display:none;" type="file" id="input-files" multiple>
-        <button type="button" class="btn btn-light" id="btn-new-folder"> 
+        <button type="button" class="btn btn-light" id="btn-new-folder" data-bs-toggle="modal" data-bs-target="#nameModal"> 
           <svg class="bi" width="17" height="17" fill="currentColor">
             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#folder"/>
           </svg> New Folder
@@ -37,7 +37,7 @@
             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#trash"/>
           </svg> Delete
         </button>
-        <button type="button" class="btn btn-light" id="btn-rename" style="display: none;"> 
+        <button type="button" class="btn btn-light" id="btn-rename" style="display: none;" data-bs-toggle="modal" data-bs-target="#nameModal"> 
           <svg class="bi" width="17" height="17" fill="currentColor">
             <use xlink:href="bootstrap-icons/bootstrap-icons.svg#pen"/>
           </svg> Rename
@@ -65,6 +65,32 @@
         Making changes...
       </div>
     </div>
+
+
+    <div class="modal fade" id="nameModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Name:</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="mb-3">
+                <input type="text" class="form-control" id="input-new-name">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button id="btn-close-modal" type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
+            <button id="btn-submit-new-name" type="button" class="btn">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
     
     <script src="javascripts/controller/switchController.js"></script>
     <script src="javascripts/switch.js"></script>

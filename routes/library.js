@@ -11,7 +11,7 @@ router.post('/file_upload',file_controller.file_upload_post);
 
 router.post('/new_folder',file_controller.new_folder_post);
 
-router.post('/file_delete',file_controller.file_delete_post);
+router.post('/delete',file_controller.delete_post);
 
 router.post('/file_rename',file_controller.file_rename_post);
 

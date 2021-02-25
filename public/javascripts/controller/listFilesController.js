@@ -10,6 +10,10 @@ class listFilesController {
         this.inputFilesEl = document.querySelector("#input-files");
         this.olBreadCrumb = document.querySelector(".breadcrumb");
         this.toastProgressEl = document.querySelector("#toast-progress");
+        this.inputName = document.querySelector("#input-new-name");
+        this.btnSubmitNewName = document.querySelector("#btn-submit-new-name");
+        this.btnCloseModal = document.querySelector("#btn-close-modal");
+        this.eventNewFolder;
         this.lastASelected;
         this.lastIndex;
         this.numberOfFiles=0;
@@ -36,7 +40,8 @@ class listFilesController {
                 this.btnRename.style.display = 'none';
         }
     }
-    
+
+    //problem
     validateName(name,a=false,restriction = ["/",".", "#", "$", "[","]"]){
         if(name!=null){
             let condition = true;
@@ -93,6 +98,10 @@ class listFilesController {
         this.addChanges(content,url,this.currentFolder.join("/"));    
     }
 
+    addContentOnInputName(content=""){
+        this.inputName.value = content;
+    }
+
     initEvents(){
         this.listFilesEl.addEventListener('selectionchange',e=>{
             this.styleButtons();
@@ -115,6 +124,7 @@ class listFilesController {
                     if(!response.err) {
                         this.renderList();
                     } else {
+                        console.error(response.err);
                         this.changeContenOfToastProgressBody("Didn't is possible to do the changes");
                     }
                 }));
@@ -125,10 +135,44 @@ class listFilesController {
         });
 
         this.btnNewFolder.addEventListener('click',event=>{
-            let name = prompt('Folder name:');
-            if(name=="") name = "New folder";
-            this.validateName(name);
+            this.addContentOnInputName();
+            this.eventNewFolder = true;
         });
+
+        this.btnSubmitNewName.addEventListener('click',event=>{
+            let newName = this.inputName.value;
+            if(this.eventNewFolder){
+                if(newName=="") newName = "New folder";
+                this.validateName(newName);
+            } else {
+                let a = this.getElementsSelected()[0];
+                let file = JSON.parse(a.dataset.file)
+                let oldName = file.name;
+                if(newName=="" || newName==oldName) newName=null;
+                if(file.type == "folder"){
+                    this.validateName(newName,a);
+                } else {
+                    this.validateName(newName,a,["/"]);
+                }
+            }
+            this.btnCloseModal.click();
+        });
+
+        this.btnDelete.addEventListener('click',event=>{
+            this.showToastProgress();
+            let content;
+            let key;
+            let file;
+            this.getElementsSelected().forEach(a=>{
+                key = JSON.parse(a.dataset.key);
+                file = JSON.parse(a.dataset.file);
+                content=JSON.stringify({key, file});
+                this.addChanges(content,'/delete',this.currentFolder.join('/'));
+            });
+        });
+
+
+        /*
 
         this.btnDelete.addEventListener('click',event=>{
             this.showToastProgress();
@@ -140,8 +184,11 @@ class listFilesController {
                 file = JSON.parse(a.dataset.file);
                 contentArray.push(JSON.stringify({key, file}));
             });
-            this.addChanges(contentArray,'/file_delete',this.currentFolder.join('/'),'content[]');
+            this.addChanges(contentArray,'/delete',this.currentFolder.join('/'),'content[]');
         });
+
+
+        */
 
         document.addEventListener('keydown',e=>{
             if(e.key=='Delete'){
@@ -151,15 +198,9 @@ class listFilesController {
 
         this.btnRename.addEventListener('click',event=>{
             let a = this.getElementsSelected()[0];
-            let file = JSON.parse(a.dataset.file)
-            let oldName = file.name;
-            let newName = prompt('Renomear:',oldName);
-            if(newName=="" || newName==oldName) newName=null;
-            if(file.type == "folder"){
-                this.validateName(newName,a);
-            } else {
-                this.validateName(newName,a,["/"]);
-            }
+            let oldName = JSON.parse(a.dataset.file).name;
+            this.addContentOnInputName(oldName);
+            this.eventNewFolder = false;
         });
     }
 
@@ -173,7 +214,7 @@ class listFilesController {
                 this.showToastProgress(false);
                 this.disabledButtons(false);
             } else {
-                console.log("erro");
+                console.error(response.err);
                 this.changeContenOfToastProgressBody("Didn't is possible to do the changes");
             }
         });
@@ -202,13 +243,6 @@ class listFilesController {
     showNumberOfFilesOnToastProgressHeader(){
         let s = (this.numberOfFiles==1)?``:`s`;
         this.changeContenOfToastProgressHeader(`Sending ${this.numberOfFiles} file`+s);
-    }
-
-    addInfoOnToast(event,file){
-        let div = document.createElement("div");
-        div.classList.add("toast-body");
-        div.innerHTML = `Loading ${file.name} <strong>0%</strong>`;
-        document.getElementById("toast-progress").appendChild(div);
     }
 
     uploadProgress(event,file){

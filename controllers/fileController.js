@@ -44,13 +44,7 @@ exports.file_upload_post = (req,res) => {
                 type: files.content.type,
                 path: files.content.path
             },error => {
-                let err;
-                if(error){
-                    err = true;
-                } else {
-                    err = false;
-                }
-                res.json({err});
+                res.json({err:error});
             });
         }         
     });
@@ -64,8 +58,7 @@ exports.new_folder_post = (req,res) => {
             path: fields.folder,
             type: "folder"
         }, error => {
-            let err = (error) ? true : false;
-            res.json({err});
+            res.json({err:error});
         });
     });
 };
@@ -87,31 +80,43 @@ function deleteFilesFromFolder(obj){
     });
 }
 
-exports.file_delete_post = (req,res) => {
+exports.delete_post = (req,res) => {
     let form = new formidable.IncomingForm({
         multiples: true,
         uploadDir: './upload',
         keepExtensions: true
     });
     form.parse(req,(err,fields,files)=>{
-        let arrayContent = JSON.parse("["+fields['content[]']+"]");
-        arrayContent.forEach(content=>{
-            name = content.file.name;
-            path = content.file.path;
-            type = content.file.type;
-
-            if(type=='folder'){
-                defaultDatabase.ref(path+'/'+name).once('value',snapshot=>{
-                    if(snapshot.val()) deleteFilesFromFolder(snapshot.val());
-                }).then(function(){
-                    defaultDatabase.ref(fields.folder+"/"+name).remove();
+    let content = JSON.parse(fields['content']);
+    let name = content.file.name;
+    let path = content.file.path;
+    let type = content.file.type;
+        if(type=='folder'){
+            defaultDatabase.ref(path+'/'+name).once('value',snapshot=>{
+                if(snapshot.val()) deleteFilesFromFolder(snapshot.val());
+            }).then(function(){
+                defaultDatabase.ref(fields.folder+"/"+name).remove().then(function(){
+                    defaultDatabase.ref(fields.folder).child(content.key).remove().then(function() {
+                        res.json({err:false});
+                      })
+                      .catch(function(error) {
+                        res.json({err:error});
+                      });
+                }).catch(function(error){
+                    res.json({err:error});
                 });
-            } else {
-                deleteFile(path);
-            }
-            defaultDatabase.ref(fields.folder).child(content.key).remove();
-        });
-        res.json({err:false});
+            }).catch(function(error) {
+                res.json({err:error});
+            });
+        } else {
+            deleteFile(path);
+            defaultDatabase.ref(fields.folder).child(content.key).remove().then(function() {
+                res.json({err:false});
+              })
+              .catch(function(error) {
+                res.json({err:error});
+              });
+        }
     });
 };
 
@@ -121,8 +126,7 @@ exports.file_rename_post = (req,res)=>{
         content= JSON.parse(fields.content);
         defaultDatabase.ref(fields.folder).child(content.key).set(content.file,
             error => {
-            let err = (error) ? true : false;
-            res.json({err});
+            res.json({err:error});
         });
     });
 };
@@ -142,11 +146,11 @@ function addFilesAndFolders(obj,folder,newName){
 exports.folder_rename_post = (req,res)=>{
     const form = formidable();
     form.parse(req,(err,fields,files)=>{
-        content = JSON.parse(fields.content);
+        let content = JSON.parse(fields.content);
         defaultDatabase.ref(fields.folder).child(content.key).set(content.file,
             error => {
                 if(error){
-                    res.json({err:true});
+                    res.json({err:error});
                 } else {
                     defaultDatabase.ref(fields.folder+"/"+content.oldName).once('value', snapshot=>{
                         if(snapshot.val()) addFilesAndFolders(snapshot.val(),fields.folder,content.newName);
@@ -155,12 +159,12 @@ exports.folder_rename_post = (req,res)=>{
                           .then(function() {
                             res.json({err:false});
                           })
-                          .catch(function(error) {
-                            res.json({err:true});
+                          .catch(function(err) {
+                            res.json({err});
                           });
                       })
-                      .catch(function(error) {
-                        res.json({err:true});
+                      .catch(function(err) {
+                        res.json({err});
                       });
                 }
             }
